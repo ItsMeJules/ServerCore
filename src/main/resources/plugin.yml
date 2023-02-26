@@ -1,0 +1,6 @@
+name: Core
+version: '${project.version}'
+main: fr.jestiz.core.Core
+api-version: 1.19
+authors: [ Jestiz ]
+description: Core plugin

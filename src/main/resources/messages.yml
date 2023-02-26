@@ -1,0 +1,11 @@
+punishment:
+  ban:
+    message:
+      - "§2§m-|§m-------------------------|§m-------------------------|-\n"
+      - "§2❣ Vous êtes banni de ce serveur ❣\n"
+      - "§2» §aBanni le: §6%ban_date%\n"
+      - "§2» §aRaison: §6%reason%"
+      - ""
+      - "\n\n§2» §aCe ban est §6permanent§2."
+      - "\n§2» §aVous pouvez faire appel sur: §ahttps://onima.fr/forum/punitions"
+      - "§2§m-|§m-------------------------|§m-------------------------|-\n"
