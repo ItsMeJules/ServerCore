@@ -1,8 +1,8 @@
-package fr.jestiz.core.redis
+package fr.jestiz.core.database.redis
 
 import fr.jestiz.core.configs.Configurations
-import fr.jestiz.core.redis.pubsub.RedisPublisher
-import fr.jestiz.core.redis.pubsub.RedisSubscriber
+import fr.jestiz.core.database.redis.pubsub.RedisPublisher
+import fr.jestiz.core.database.redis.pubsub.RedisSubscriber
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import java.io.FileNotFoundException
@@ -29,11 +29,15 @@ object RedisServer {
         runCommand { it.publish(channel, publisher.formatChannelMessage()) }
     }
 
+    fun publish(channel: String, publisher: () -> String) {
+        runCommand { it.publish(channel, publisher()) }
+    }
+
     fun newSubscriber(channel: String): RedisSubscriber {
         return RedisSubscriber(settings, channel)
     }
 
-    private fun runCommand(run: (Jedis) -> Unit): Boolean {
+    fun runCommand(run: (Jedis) -> Unit): Boolean {
         pool.resource.use { jedis ->
             try {
                 run(jedis)

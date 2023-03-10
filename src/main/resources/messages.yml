@@ -1,11 +1,38 @@
+error:
+  player-load: "§cNouns n'avons pas pu charger vos données. Si ce problème persiste, veuillez contacter un membre du staff."
 punishment:
   ban:
-    message:
-      - "§2§m-|§m-------------------------|§m-------------------------|-\n"
-      - "§2❣ Vous êtes banni de ce serveur ❣\n"
-      - "§2» §aBanni le: §6%ban_date%\n"
+    no-reason: "Aucune raison n'a été specifiée."
+    kick-message:
+      - "§2§m-|§m-------------------------|§m-------------------------|-"
+      - "§2❣ Vous êtes banni de ce serveur ❣"
+      - "§2» §aBanni le: §6%ban_date%"
       - "§2» §aRaison: §6%reason%"
       - ""
-      - "\n\n§2» §aCe ban est §6permanent§2."
-      - "\n§2» §aVous pouvez faire appel sur: §ahttps://onima.fr/forum/punitions"
-      - "§2§m-|§m-------------------------|§m-------------------------|-\n"
+      - "§2» §aCe ban est §6permanent§2."
+      - "§2» §aVous pouvez faire appel sur: §ahttps://onima.fr/forum/punitions"
+      - "§2§m-|§m-------------------------|§m-------------------------|-"
+    staff-message:
+      silent-prefix: "§7[Silencieux]§r "
+      added-message: "%silent%§a%receiver% a été §cbanni §apar %sender%."
+      removed-message: "%silent% §a%receiver% a été débanni §apar %sender%."
+      hover-added: "§eRaison: %reason%"
+      hover-removed: "§eRaison: %reason%"
+    player-message:
+      added-message: "§a%receiver% a été §cbanni par %sender%."
+      removed-message: "§a%receiver% a été débanni par %sender%."
+      hover-added: "§eRaison: %reason%"
+      hover-removed: "§eRaison: %reason%"
+command:
+  console-only: "§cSeulement la console peut utiliser cette commande!"
+  player-only: "§cSeulement un joueur eut utiliser cette commande!"
+  no-permission: "§cVous n'avez pas l'autorisation d'utiliser cette commande!"
+  command-usage: "§cUtilisation: /%name% "
+  value-invalid: "§cValeur %val% non valide!"
+  invalid-world: "§cLe monde %world% n'existe pas!"
+  player-not-found: "§cLe joueur %player% n'existe pas!"
+  gamemode:
+    not-found: "§cGamemode %val% non valide!"
+    updated: "§eVotre mode de jeu a été mis sur §r%gamemode%."
+    updated-to-player: "§eLe mode de jeu de §r%receiver% §ea été mis sur §r%gamemode%."
+    updated-by-player: "§eVotre mode de jeu a été mis sur §r%gamemode% §epar §r%sender%."

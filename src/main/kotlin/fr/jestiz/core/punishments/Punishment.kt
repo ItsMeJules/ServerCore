@@ -3,15 +3,18 @@ package fr.jestiz.core.punishments
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import fr.jestiz.core.Constants
-import fr.jestiz.core.Core
-import fr.jestiz.core.redis.RedisServer
-import fr.jestiz.core.redis.pubsub.RedisPublisher
+import fr.jestiz.core.configs.Configurations
+import fr.jestiz.core.players.PlayerManager
+import fr.jestiz.core.players.ServerPlayer
+import fr.jestiz.core.database.redis.RedisServer
+import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import java.util.*
 
-abstract class Punishment(private val sender: UUID, private val receiver: UUID): RedisPublisher {
+abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher {
     protected var id = 0
+
+    var reason: String = Configurations.getConfigMessage("punishment.ban.no-reason")
     var remover: UUID? = null
-    var reason: String? = null
     var removeReason: String? = null
     val removed: Boolean
         get() = removeReason != null
@@ -23,7 +26,6 @@ abstract class Punishment(private val sender: UUID, private val receiver: UUID):
         set(duration) {
             expire = duration + System.currentTimeMillis()
         }
-
     val isActive: Boolean
         get() {
             return if (removeReason != null)
@@ -37,10 +39,23 @@ abstract class Punishment(private val sender: UUID, private val receiver: UUID):
         }
 
     abstract fun errorMessage(): String
-    abstract fun add(): Boolean
+    open fun execute(): Boolean {
+        val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
+        val punishments = offlinePlayer.punishments
+
+        if (this in offlinePlayer.punishments)
+            return false
+
+        if (this is ServerRestrictedPunishment && offlinePlayer is ServerPlayer)
+            kick(offlinePlayer, errorMessage())
+
+        punishments.add(this)
+        RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
+        return true
+    }
+
     abstract fun remove(): Boolean
 
-    // just send the info that a punishment has been issued. Then retrieve it in the redis database from the id.
     override fun formatChannelMessage(): String {
         val json = JsonObject()
         json.addProperty("data-type", "punishment")
