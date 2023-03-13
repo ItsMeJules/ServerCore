@@ -26,6 +26,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         set(duration) {
             expire = duration + System.currentTimeMillis()
         }
+
     val isActive: Boolean
         get() {
             return if (removeReason != null)
@@ -38,7 +39,9 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
                 expire >= System.currentTimeMillis()
         }
 
+
     abstract fun errorMessage(): String
+
     open fun execute(): Boolean {
         val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
         val punishments = offlinePlayer.punishments
@@ -52,12 +55,22 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         if (this is ServerRestrictedPunishment && offlinePlayer is ServerPlayer)
             kick(offlinePlayer, errorMessage())
 
+        id = ID++
         punishments.add(this)
         RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
         return true
     }
 
-    abstract fun remove(): Boolean
+
+    open fun remove(): Boolean {
+        val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
+
+        if (silent && reason.endsWith("-s"))
+            reason = reason.substring(0, reason.length - 2)
+
+        RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
+        return true
+    }
 
     override fun formatChannelMessage(): String {
         val json = JsonObject()
