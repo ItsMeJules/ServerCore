@@ -9,7 +9,7 @@ punishment:
       - "§2» §aBanni le: §6%ban_date%"
       - "§2» §aRaison: §6%reason%"
       - ""
-      - "§2» §aCe ban est §6permanent§2."
+      - "§2» §aCe ban expire le : §6%duration%§2."
       - "§2» §aVous pouvez faire appel sur: §ahttps://onima.fr/forum/punitions"
       - "§2§m-|§m-------------------------|§m-------------------------|-"
     staff-message:

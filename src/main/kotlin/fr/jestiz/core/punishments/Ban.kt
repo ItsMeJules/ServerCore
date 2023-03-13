@@ -12,6 +12,7 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRe
     override fun errorMessage(): String {
         return Configurations.getConfigMessage("punishment.ban.kick-message",
             "%ban_date%" to Constants.DATE_FORMAT.format(issued),
+            "%duration%" to if (duration == Long.MAX_VALUE) "jamais" else Constants.DATE_FORMAT.format(expire),
             "%reason%" to reason)
     }
 
@@ -31,11 +32,11 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRe
 
         Core.broadcastWithPerm(FancyMessage(staffMessage)
             .hoverEvent(FancyMessage.SHOW_TEXT)
-            .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-added")), Constants.PERMISSION_BAN_COMMAND)
+            .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-added").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
         if (!silent) {
             Core.broadcastWithoutPerm(FancyMessage(playerMessage)
                 .hoverEvent(FancyMessage.SHOW_TEXT)
-                .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-added")), Constants.PERMISSION_BAN_COMMAND)
+                .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-added").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
         }
         return added
     }

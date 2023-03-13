@@ -19,15 +19,14 @@ class PunishmentCommands {
                    @Parameter(name = "duration", required = false, default = "EVER") duration: DurationParser,
                    @Parameter(name = "reason", concat = true, required = false) reason: String?)
     {
-        val serverPlayer = PlayerManager.getOnlinePlayer(if (sender is ConsoleCommandSender) Constants.CONSOLE_UUID else (sender as Player).uniqueId)
-        val ban = Ban(serverPlayer.uuid, offlineServerPlayer.uuid)
+        val ban = Ban(if (sender is ConsoleCommandSender) Constants.CONSOLE_UUID else (sender as Player).uniqueId, offlineServerPlayer.uuid)
 
         ban.duration = duration.millisTime
         if (reason != null) {
-            ban.reason = reason
             ban.silent = reason.endsWith("-s")
+            ban.reason = reason
         }
-        
+
         ban.execute()
     }
 

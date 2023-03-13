@@ -20,6 +20,7 @@ class RegisteredCommand(private val commandData: CommandData) : org.bukkit.comma
 
     init {
         CommandHandler.commands.add(this)
+        super.setAliases(commandData.names)
     }
 
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>): Boolean {
@@ -66,62 +67,28 @@ class RegisteredCommand(private val commandData: CommandData) : org.bukkit.comma
         if (commandData.permission != "" && !sender.hasPermission(commandData.permission))
             return mutableListOf()
 
-        val spaceIndex = label.indexOf(' ')
-        val completions = mutableListOf<String>()
-        var doneHere = false
+        if (args.isEmpty()) {
+            val completions = mutableListOf<String>()
 
-        for (alias in commandData.names) {
-            var split = alias.split(" ").toTypedArray()[0]
-
-            if (spaceIndex != -1)
-                split = alias
-
-            if (StringUtil.startsWithIgnoreCase(split.trim(), label.trim()) || StringUtil.startsWithIgnoreCase(label.trim(), split.trim())) {
-                if (spaceIndex == -1 && label.length < alias.length)
-                    completions.add("/" + split.lowercase(Locale.getDefault())) // Completes the command
-                else if (label.lowercase(Locale.getDefault()).startsWith(alias.lowercase(Locale.getDefault()) + " ") && commandData.parameters.size > 0) {
-                    // Completes the params
-                    var paramIndex = label.split(" ").size - alias.split(" ").toTypedArray().size
-
-                    // If they didn't hit space, complete the param before it.
-                    if (paramIndex == commandData.parameters.size || !label.endsWith(" "))
-                        paramIndex -= 1
-
-                    if (paramIndex < 0)
-                        paramIndex = 0
-
-                    val paramData = commandData.parameters[paramIndex]
-                    val params = label.split(" ")
-
-                    CommandHandler.parameterTypes[paramData.kTypeParameter]?.let { paramProcessor ->
-                        paramProcessor.tabComplete(sender, if (label.endsWith(" ")) "" else params[params.size - 1])
-                            .forEach { completions.add(it) }
-                    }
-
-                    doneHere = true
-                    break
-                } else {
-                    val halfSplitString = split.lowercase(Locale.getDefault())
-                        .replaceFirst(alias.split(" ").toTypedArray()[0]
-                            .lowercase(Locale.getDefault()), "").trim()
-                    val splitString = halfSplitString.split(" ").toTypedArray()
-                    val fixedAlias = splitString[splitString.size - 1].trim()
-                    val lastArg = if (label.endsWith(" ")) "" else label.split(" ")[label.split(" ").size - 1]
-
-                    if (fixedAlias.length >= lastArg.length)
-                        completions.add(fixedAlias)
-
-                    doneHere = true
+            if (StringUtil.startsWithIgnoreCase(name, args[0]))
+                completions.add("/$name")
+            else {
+                for (alias in aliases) {
+                    if (StringUtil.startsWithIgnoreCase(alias, args[0]))
+                        completions.add("/$alias")
                 }
+            }
+
+            return completions;
+        } else if (args.size < commandData.parameters.size) {
+            val paramData = commandData.parameters[args.size - 1]
+
+            CommandHandler.parameterTypes[paramData.kTypeParameter]?.let { paramProcessor ->
+                return paramProcessor.tabComplete(sender, args[args.size - 1]).toMutableList()
             }
         }
 
-        if (!doneHere) {
-            for (vanillaCompletion in super.tabComplete(sender, label, args) ?: mutableListOf<String>())
-                completions.add(vanillaCompletion)
-        }
-
-        return completions
+        return super.tabComplete(sender, label, args)
     }
 
     private fun transformParameter(sender: CommandSender, parameter: String, transformTo: KType): Any? {

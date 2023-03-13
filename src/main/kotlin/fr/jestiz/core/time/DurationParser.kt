@@ -2,6 +2,7 @@ package fr.jestiz.core.time
 
 import com.google.common.primitives.Longs
 import fr.jestiz.core.Constants
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 class DurationParser(private val toParse: String) {
@@ -9,7 +10,7 @@ class DurationParser(private val toParse: String) {
     val millisTime: Long
 
     init {
-        millisTime = when (toParse) {
+        millisTime = when (toParse.uppercase(Locale.getDefault())) {
             "EVER", "PERMANENT",
             "FOREVER", "PERM" -> Long.MAX_VALUE
             else -> toMillis()

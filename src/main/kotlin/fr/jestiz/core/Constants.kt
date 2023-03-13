@@ -23,7 +23,7 @@ object Constants {
     const val PUNISHMENT_CHANNEL = "punishment"
 
     // UUID
-    val CONSOLE_UUID = UUID.fromString("29f26148-4d55-4b4b-8e07-900fda686a67")
+    val CONSOLE_UUID: UUID = UUID.fromString("29f26148-4d55-4b4b-8e07-900fda686a67")
 
     // PERMISSIONS
     const val PERMISSION_BAN_COMMAND = "core.command.ban"

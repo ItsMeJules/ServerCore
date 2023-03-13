@@ -46,6 +46,9 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         if (this in offlinePlayer.punishments)
             return false
 
+        if (silent && reason.endsWith("-s"))
+            reason = reason.substring(0, reason.length - 2)
+
         if (this is ServerRestrictedPunishment && offlinePlayer is ServerPlayer)
             kick(offlinePlayer, errorMessage())
 
