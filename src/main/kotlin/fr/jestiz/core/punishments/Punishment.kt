@@ -21,10 +21,18 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     var silent = false
     var issued = System.currentTimeMillis()
     var expire = -1L
-    var duration
-        get() = expire - System.currentTimeMillis()
+    var duration: Long
+        get() {
+            return if (expire == Long.MAX_VALUE)
+                expire
+            else
+                expire - System.currentTimeMillis()
+        }
         set(duration) {
-            expire = duration + System.currentTimeMillis()
+            expire = if (duration != Long.MAX_VALUE)
+                duration + System.currentTimeMillis()
+            else
+                duration
         }
 
     val isActive: Boolean
@@ -74,8 +82,22 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
     override fun formatChannelMessage(): String {
         val json = JsonObject()
+
         json.addProperty("data-type", "punishment")
         json.addProperty("id", id)
+        json.addProperty("added", !removed)
+        json.addProperty("silent", silent)
+        json.addProperty("issued", issued)
+
+        if (!removed) {
+            json.addProperty("sender", sender.toString())
+            json.addProperty("reason", reason)
+            json.addProperty("expire", expire)
+        } else {
+            json.addProperty("sender", remover.toString())
+            json.addProperty("reason", removeReason)
+        }
+
         return json.toString()
     }
 
