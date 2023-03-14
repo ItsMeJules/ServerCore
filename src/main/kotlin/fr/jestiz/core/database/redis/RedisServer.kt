@@ -34,21 +34,11 @@ object RedisServer {
     }
 
     fun newSubscriber(channel: String): RedisSubscriber {
-        return RedisSubscriber(settings, channel)
+        return RedisSubscriber(channel)
     }
 
     fun runCommand(run: (Jedis) -> Unit): Boolean {
-        pool.resource.use { jedis ->
-            try {
-                run(jedis)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                pool.returnBrokenResource(jedis)
-                false
-            } finally {
-                pool.returnResource(jedis)
-            }
-        }
+        pool.resource.use { jedis -> run(jedis) }
         return true
     }
 }
