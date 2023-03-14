@@ -45,25 +45,6 @@ object Configurations {
         }
     }
 
-/*    fun <T> getConfigMessage(message: String, vararg replacement: Pair<String, T>): String {
-        val config = configs["messages.yml"] ?: return Constants.CONFIGURATION_NOT_FOUND
-        if (!config.isSet(message))
-            return messagePathNotFound(message, "messages.yml")
-
-        lateinit var msg: String
-
-        if (config.isList(message))
-            config.getStringList(message)!!.forEach { msg += it + "\n"}
-        else
-            msg = config.getString(message)!!
-
-        val builder = StringBuilder(msg)
-        for ((key, value) in replacement)
-            builder.replace(builder.indexOf(key), builder.indexOf(key) + key.length, value.toString())
-
-        return builder.toString()
-    }*/
-
     fun <T> getConfigMessage(message: String, vararg replacement: Pair<String, T>): String {
         val config = configs["messages.yml"] ?: return Constants.CONFIGURATION_NOT_FOUND
 

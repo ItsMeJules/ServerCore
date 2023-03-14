@@ -21,6 +21,7 @@ object Constants {
 
     // REDIS PUB/SUB
     const val PUNISHMENT_CHANNEL = "punishment"
+    const val UUID_LOOKUP_CHANNEL = "name-to-uuid"
 
     // UUID
     val CONSOLE_UUID: UUID = UUID.fromString("29f26148-4d55-4b4b-8e07-900fda686a67")

@@ -95,7 +95,7 @@ object PlayerManager {
     }
 
     /**
-     * Gets a [ServerPlayer] instance
+     * Gets a [ServerPlayer] instance.
      * As it's by name, it's using [getUUID] which should be run async.
      *
      * @return The [OfflineServerPlayer] corresponding to the uuid or a new instance if not found.
@@ -150,7 +150,7 @@ object PlayerManager {
         val completableFuture = CompletableFuture<UUID>()
         completableFutures[name] = completableFuture
 
-        RedisServer.publish("name-to-uuid") {
+        RedisServer.publish(Constants.UUID_LOOKUP_CHANNEL) {
             val json = JsonObject()
             json.addProperty("name", name)
             return@publish json.toString()
