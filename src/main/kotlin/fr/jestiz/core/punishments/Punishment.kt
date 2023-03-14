@@ -50,15 +50,15 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
     abstract fun errorMessage(): String
 
-    open fun execute(): Boolean {
+    open fun execute(reason: String): Boolean {
         val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
-        val punishments = offlinePlayer.punishments
 
         if (this in offlinePlayer.punishments)
             return false
 
-        if (silent && reason.endsWith("-s"))
-            reason = reason.substring(0, reason.length - 2)
+        val punishments = offlinePlayer.punishments
+
+        this.reason = reason
 
         if (this is ServerRestrictedPunishment && offlinePlayer is ServerPlayer)
             kick(offlinePlayer, errorMessage())
@@ -70,11 +70,9 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     }
 
 
-    open fun remove(): Boolean {
-        val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
-
-        if (silent && reason.endsWith("-s"))
-            reason = reason.substring(0, reason.length - 2)
+    open fun remove(remover: UUID, removeReason: String): Boolean {
+        this.remover = remover
+        this.removeReason = removeReason
 
         RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
         return true

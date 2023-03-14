@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 
 object PlayerManager {
     private val players = mutableMapOf<UUID, ServerPlayer>()
-    val offlinePlayers: ExpiringMap<UUID, OfflineServerPlayer> = ExpiringMap.builder()
+    private val offlinePlayers: ExpiringMap<UUID, OfflineServerPlayer> = ExpiringMap.builder()
         .expiration(Constants.OFFLINE_PLAYER_EXPIRE_TIME_MINS, TimeUnit.MINUTES) // TODO value to verify
         .expirationPolicy(ExpirationPolicy.ACCESSED)
         .build()
@@ -23,7 +23,7 @@ object PlayerManager {
     private val completableFutures = mutableMapOf<String, CompletableFuture<UUID>>()
 
     init {
-        RedisServer.newSubscriber("name-to-uuid").parser { msg ->
+        RedisServer.newSubscriber(Constants.REDIS_UUID_LOOKUP_CHANNEL).parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
             val name = jsonObject["name"]!!.asString // This can't be null
 
@@ -116,15 +116,6 @@ object PlayerManager {
     }
 
     /**
-     * Check if the [OfflineServerPlayer] exists
-     * As it's by name, it's using [getUUID] which should be run async.
-     */
-    fun offlinePlayerExists(name: String): Boolean {
-        val uuid = getUUID(name) ?: return false
-        return offlinePlayers.containsKey(uuid)
-    }
-
-    /**
      * Retrieves an [UUID] from a player name.
      * It first looks in the plugin's cache, then goes through redis
      * and finally if nothing was found it sends a message (through redis pub/sub)
@@ -150,7 +141,7 @@ object PlayerManager {
         val completableFuture = CompletableFuture<UUID>()
         completableFutures[name] = completableFuture
 
-        RedisServer.publish(Constants.UUID_LOOKUP_CHANNEL) {
+        RedisServer.publish(Constants.REDIS_UUID_LOOKUP_CHANNEL) {
             val json = JsonObject()
             json.addProperty("name", name)
             return@publish json.toString()
@@ -161,10 +152,10 @@ object PlayerManager {
 
     fun updateUUIDCache(name: String, uuid: UUID) {
         nameToUUID[name.lowercase()] = uuid;
-        RedisServer.runCommand { it.hset("name-to-uuid", name.lowercase(), uuid.toString()) }
+        RedisServer.runCommand { it.hset(Constants.REDIS_NAME_UUID_HSET, name.lowercase(), uuid.toString()) }
     }
 
     fun getOnlinePlayers(): List<ServerPlayer> {
-        return players.values.filterIsInstance<ServerPlayer>()
+        return players.values.toList()
     }
 }

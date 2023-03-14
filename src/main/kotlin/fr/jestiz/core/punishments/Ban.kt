@@ -16,8 +16,8 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRe
             "%reason%" to reason)
     }
 
-    override fun execute(): Boolean {
-        val added = super.execute()
+    override fun execute(reason: String): Boolean {
+        val added = super.execute(reason)
         val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
         val senderName = if (Constants.CONSOLE_UUID == sender) "Console" else PlayerManager.getOfflinePlayer(sender).bukkitPlayer.name
 
@@ -42,13 +42,10 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRe
     }
 
 
-    override fun remove(): Boolean {
-        if (remover == null || removeReason == null)
-            return false
-
-        val removed = super.remove()
+    override fun remove(remover: UUID, removeReason: String): Boolean {
+        val removed = super.remove(remover, removeReason)
         val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
-        val senderName = if (Constants.CONSOLE_UUID == remover!!) "Console" else PlayerManager.getOfflinePlayer(remover!!).bukkitPlayer.name
+        val senderName = if (Constants.CONSOLE_UUID == remover) "Console" else PlayerManager.getOfflinePlayer(remover!!).bukkitPlayer.name
 
         val staffMessage = Configurations.getConfigMessage("punishment.ban.staff-message.removed-message",
             "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
