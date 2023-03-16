@@ -41,4 +41,9 @@ object RedisServer {
         pool.resource.use { jedis -> run(jedis) }
         return true
     }
+
+    fun closeConnections() {
+        RedisSubscriber.subscribers.forEach { (_, v) -> v.close() }
+        pool.close()
+    }
 }

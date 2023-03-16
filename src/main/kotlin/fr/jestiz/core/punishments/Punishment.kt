@@ -11,7 +11,7 @@ import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import java.util.*
 
 abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher {
-    protected var id = 0
+    private var id = 0
 
     var reason: String = Configurations.getConfigMessage("punishment.ban.no-reason")
     var remover: UUID? = null

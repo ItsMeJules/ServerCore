@@ -31,6 +31,6 @@ class RedisSubscriber(private val channel: String) {
     }
 
     companion object {
-        private val subscribers: MutableMap<String, RedisSubscriber> = HashMap(10)
+        val subscribers: MutableMap<String, RedisSubscriber> = HashMap(10)
     }
 }

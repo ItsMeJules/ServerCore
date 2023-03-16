@@ -26,6 +26,7 @@ class ServerPlayerListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onQuitSave(event: PlayerQuitEvent) {
+        // Deletes every trace of the player.
         val serverPlayer = PlayerManager.removeOnlinePlayer(event.player.uniqueId)
 
         serverPlayer?.let {

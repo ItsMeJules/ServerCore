@@ -2,6 +2,7 @@ package fr.jestiz.core
 
 import fr.jestiz.core.api.commands.CommandHandler
 import fr.jestiz.core.configs.Configurations
+import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.fancymessage.FancyMessage
 import fr.jestiz.core.listeners.ServerPlayerListener
 import fr.jestiz.core.players.PlayerManager
@@ -22,6 +23,11 @@ class Core : JavaPlugin() {
         CommandHandler.registerParameterProcessors("fr.jestiz.core.api.commands.parameters.processors.defaults")
         CommandHandler.registerCommands("fr.jestiz.core.commands")
     }
+
+    override fun onDisable() {
+        RedisServer.closeConnections()
+    }
+
     private fun createResources() {
         Configurations.copyDefaultResource("config.yml")
         Configurations.copyDefaultResource("messages.yml")

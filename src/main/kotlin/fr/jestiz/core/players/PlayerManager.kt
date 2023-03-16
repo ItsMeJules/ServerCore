@@ -134,7 +134,7 @@ object PlayerManager {
 
         // Fetches from redis cache
         var uuidString: String? = null
-        RedisServer.runCommand { uuidString = it.hget("name-to-uuid", name.lowercase()) }
+        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_NAME_UUID_HSET, name.lowercase()) }
         uuidString?.let { return UUID.fromString(uuidString) }
 
         // Fetches from database
