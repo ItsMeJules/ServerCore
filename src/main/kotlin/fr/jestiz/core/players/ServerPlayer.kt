@@ -21,8 +21,11 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
         return super.load()
     }
 
-    override fun writeToDatabase(): Boolean {
-        super.writeToDatabase()
+    override fun writeToRedis(): Boolean {
+        super.writeToRedis()
+
+        PlayerManager.updateUUIDCache(player.name, player.uniqueId)
+
         return true
     }
 

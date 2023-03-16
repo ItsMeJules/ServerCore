@@ -1,13 +1,13 @@
 package fr.jestiz.core.players
 
-import fr.jestiz.core.database.DatabaseWriter
+import fr.jestiz.core.database.RedisWriter
 import fr.jestiz.core.punishments.Punishment
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import java.util.*
 import kotlin.reflect.KClass
 
-open class OfflineServerPlayer(val uuid: UUID): DatabaseWriter {
+open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
 
     lateinit var address: String
 
@@ -25,7 +25,7 @@ open class OfflineServerPlayer(val uuid: UUID): DatabaseWriter {
         return true
     }
 
-    override fun writeToDatabase(): Boolean {
+    override fun writeToRedis(): Boolean {
         return true
     }
 

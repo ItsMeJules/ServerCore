@@ -31,7 +31,7 @@ class ServerPlayerListener : Listener {
 
         serverPlayer?.let {
             // Saves the data of the ServerPlayer
-            Bukkit.getScheduler().runTaskAsynchronously(Core.instance) { it.writeToDatabase() }
+            Bukkit.getScheduler().runTaskAsynchronously(Core.instance) { it.writeToRedis() }
             // Initializes a tmp OfflineServerPlayer
             PlayerManager.getOfflinePlayer(it.uuid).transferInstance(it)
         }

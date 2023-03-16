@@ -158,4 +158,8 @@ object PlayerManager {
     fun getOnlinePlayers(): List<ServerPlayer> {
         return players.values.toList()
     }
+
+    fun saveServerPlayers() {
+        players.values.forEach { it.writeToRedis() }
+    }
 }

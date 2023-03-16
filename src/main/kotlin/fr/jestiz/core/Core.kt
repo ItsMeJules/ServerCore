@@ -25,6 +25,7 @@ class Core : JavaPlugin() {
     }
 
     override fun onDisable() {
+        PlayerManager.saveServerPlayers()
         RedisServer.closeConnections()
     }
 
