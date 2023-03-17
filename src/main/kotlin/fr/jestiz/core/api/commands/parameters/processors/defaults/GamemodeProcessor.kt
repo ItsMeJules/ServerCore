@@ -24,7 +24,6 @@ class GamemodeProcessor : ParameterProcessor<GameMode>() {
 
     override fun tabComplete(sender: CommandSender, source: String): List<String> {
         return GameMode.values().map { it.name.lowercase(Locale.getDefault()) }.filter {
-            println("$it | $source ||| ${it.startsWith(source.lowercase(Locale.getDefault()))}")
             it.startsWith(source.lowercase(Locale.getDefault()))
         }
     }

@@ -107,8 +107,6 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
             sub.parser { msg ->
                 val jsonObject = JsonParser.parseString(msg).asJsonObject
-
-                println(jsonObject)
             }
         }
     }

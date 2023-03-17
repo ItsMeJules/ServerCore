@@ -1,4 +1,4 @@
-package fr.jestiz.core.database
+package fr.jestiz.core.database.redis
 
 interface RedisWriter {
 

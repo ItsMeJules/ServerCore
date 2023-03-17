@@ -23,13 +23,18 @@ object PlayerManager {
     private val completableFutures = mutableMapOf<String, CompletableFuture<UUID>>()
 
     init {
-        RedisServer.newSubscriber(Constants.REDIS_UUID_LOOKUP_CHANNEL).parser { msg ->
+        RedisServer.newSubscriber(Constants.REDIS_UUID_LOOKUP_CHANNEL_RESPONSE).parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
             val name = jsonObject["name"]!!.asString // This can't be null
 
             completableFutures.remove(name)?.let {
-                jsonObject["uuid"]?.let { uuid ->
-                    it.complete(UUID.fromString(uuid.asString))
+                jsonObject["uuid"]?.let { jsonUuid ->
+                    if (!jsonUuid.isJsonNull) {
+                        val uuid = UUID.fromString(jsonUuid.asString)
+                        it.complete(uuid)
+                        updateUUIDCache(name, uuid)
+                    } else
+                        it.complete(null)
                 } ?: it.complete(null)
             }
         }
@@ -126,21 +131,25 @@ object PlayerManager {
     // Bukkit.getOfflinePlayer(String) is very slow (network I/O) hence this function.
     private fun getUUID(name: String): UUID? {
         // Fetches from plugin cache
-        var uuid = nameToUUID[name.lowercase(Locale.getDefault())]
+        println("fetching plugin cache.")
+        var name = name.lowercase(Locale.getDefault())
+        var uuid = nameToUUID[name]
         uuid?.let { return uuid }
 
         if (Bukkit.isPrimaryThread())
             throw RuntimeException("Trying to retrieve an UUID in database from the main thread!")
 
         // Fetches from redis cache
+        println("fetching redis cache.")
         var uuidString: String? = null
-        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_NAME_UUID_HSET, name.lowercase()) }
+        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_NAME_UUID_HSET, name) }
         uuidString?.let { return UUID.fromString(uuidString) }
 
         // Fetches from database
         val completableFuture = CompletableFuture<UUID>()
         completableFutures[name] = completableFuture
 
+        println("fetching db.")
         RedisServer.publish(Constants.REDIS_UUID_LOOKUP_CHANNEL) {
             val json = JsonObject()
             json.addProperty("name", name)

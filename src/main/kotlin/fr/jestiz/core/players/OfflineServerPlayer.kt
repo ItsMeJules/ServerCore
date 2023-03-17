@@ -1,6 +1,6 @@
 package fr.jestiz.core.players
 
-import fr.jestiz.core.database.RedisWriter
+import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.punishments.Punishment
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer

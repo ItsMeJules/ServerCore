@@ -23,7 +23,6 @@ object Configurations {
 
     private fun messagePathNotFound(path: String, file: String): String {
         val pathIndex = Constants.CONFIGURATION_PATH_NOT_FOUND.indexOf("%path%");
-        print(pathIndex)
         return Constants.CONFIGURATION_PATH_NOT_FOUND
             .replace(pathIndex, pathIndex + "%path%".length, path)
             .replace(Constants.CONFIGURATION_PATH_NOT_FOUND.indexOf("%file%"), Constants.CONFIGURATION_PATH_NOT_FOUND.indexOf("%file%") + "%file%".length, file).toString()

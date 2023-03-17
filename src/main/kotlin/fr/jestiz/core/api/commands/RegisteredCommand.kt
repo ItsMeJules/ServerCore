@@ -27,39 +27,17 @@ class RegisteredCommand(private val commandData: CommandData) : org.bukkit.comma
         if (!validateSender(sender))
             return false
 
-        val commandSender: Any = if (!commandData.playerOnly) sender else PlayerManager.getOnlinePlayer((sender as Player).uniqueId)
-        val transformedParameters: MutableList<Any?> = mutableListOf(commandSender)
-
-        for (i in commandData.parameters.indices) {
-            val param: ParameterData = commandData.parameters[i]
-            val isDefault = i >= args.size
-
-            if (isDefault && param.data.default.isEmpty()) {
-                if (param.data.required) {
-                    usage(sender)
-                    return false
-                } else {
-                    transformedParameters.add(null)
-                    continue
-                }
-            }
-
-            var givenParam = if (!isDefault) args[i] else param.data.default
-
-            if (param.data.concat && givenParam.trim() != param.data.default.trim())
-                givenParam = concatParam(args, i)
-
-            transformedParameters.add(transformParameter(sender, givenParam, param.kTypeParameter) ?: return false)
-            if (param.data.concat)
-                break
-        }
-
         if (commandData.async) {
             Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
-                commandData.function.call(commandData.commandClass, transformedParameters.toTypedArray())
+                transformParameters(sender, args)?.let {
+                    commandData.function.call(commandData.commandClass, *it.toTypedArray())
+                }
             }
-        } else
-            commandData.function.call(commandData.commandClass, *transformedParameters.toTypedArray())
+        } else {
+            transformParameters(sender, args)?.let {
+                commandData.function.call(commandData.commandClass, *it.toTypedArray())
+            }
+        }
         return true
     }
 
@@ -89,6 +67,36 @@ class RegisteredCommand(private val commandData: CommandData) : org.bukkit.comma
         }
 
         return super.tabComplete(sender, label, args)
+    }
+
+    private fun transformParameters(sender: CommandSender, args: Array<out String>): MutableList<Any?>? {
+        val commandSender: Any = if (!commandData.playerOnly) sender else PlayerManager.getOnlinePlayer((sender as Player).uniqueId)
+        val transformedParameters: MutableList<Any?> = mutableListOf(commandSender)
+
+        for (i in commandData.parameters.indices) {
+            val param: ParameterData = commandData.parameters[i]
+            val isDefault = i >= args.size
+
+            if (isDefault && param.data.default.isEmpty()) {
+                if (param.data.required) {
+                    usage(sender)
+                    return null
+                } else {
+                    transformedParameters.add(null)
+                    continue
+                }
+            }
+
+            var givenParam = if (!isDefault) args[i] else param.data.default
+
+            if (param.data.concat && givenParam.trim() != param.data.default.trim())
+                givenParam = concatParam(args, i)
+
+            transformedParameters.add(transformParameter(sender, givenParam, param.kTypeParameter) ?: return null)
+            if (param.data.concat)
+                break
+        }
+        return transformedParameters
     }
 
     private fun transformParameter(sender: CommandSender, parameter: String, transformTo: KType): Any? {

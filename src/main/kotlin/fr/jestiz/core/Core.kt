@@ -1,5 +1,6 @@
 package fr.jestiz.core
 
+import com.google.gson.JsonObject
 import fr.jestiz.core.api.commands.CommandHandler
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.RedisServer
@@ -22,11 +23,15 @@ class Core : JavaPlugin() {
         Punishment.subscribe()
         CommandHandler.registerParameterProcessors("fr.jestiz.core.api.commands.parameters.processors.defaults")
         CommandHandler.registerCommands("fr.jestiz.core.commands")
+
+        RedisServer.publish(Constants.REDIS_SERVER_HEARTBEAT_CHANNEL, ::publishStarted)
     }
 
-    override fun onDisable() {
-        PlayerManager.saveServerPlayers()
-        RedisServer.closeConnections()
+    private fun publishStarted(): String {
+        val jsonObject = JsonObject()
+        jsonObject.addProperty("server-id", Bukkit.getServerId())
+        jsonObject.addProperty("status", "started")
+        return jsonObject.toString()
     }
 
     private fun createResources() {
@@ -40,6 +45,21 @@ class Core : JavaPlugin() {
             registerEvents(ServerPlayerListener(), this@Core)
         }
     }
+
+    override fun onDisable() {
+        PlayerManager.saveServerPlayers()
+
+        RedisServer.publish(Constants.REDIS_SERVER_HEARTBEAT_CHANNEL, ::publishStop)
+        RedisServer.closeConnections()
+    }
+
+    private fun publishStop(): String {
+        val jsonObject = JsonObject()
+        jsonObject.addProperty("server-id", Bukkit.getServerId())
+        jsonObject.addProperty("status", "stopped")
+        return jsonObject.toString()
+    }
+
 
     companion object {
         lateinit var instance: Core
