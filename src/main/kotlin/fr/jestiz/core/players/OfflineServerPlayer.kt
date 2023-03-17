@@ -1,5 +1,8 @@
 package fr.jestiz.core.players
 
+import com.google.gson.JsonObject
+import fr.jestiz.core.Constants
+import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.punishments.Punishment
 import org.bukkit.Bukkit
@@ -26,6 +29,15 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
     }
 
     override fun writeToRedis(): Boolean {
+        RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) {
+            val jsonObject = JsonObject()
+
+            jsonObject.addProperty("uuid", uuid.toString())
+
+            return@publish jsonObject
+        }
+
+        
         return true
     }
 

@@ -38,6 +38,20 @@ object PlayerManager {
                 } ?: it.complete(null)
             }
         }
+
+        RedisServer.newSubscriber(Constants.REDIS_PLAYER_UPDATE_CHANNEL).parser { msg ->
+            val jsonObject = JsonParser.parseString(msg).asJsonObject
+
+            val serverIdString = jsonObject["server-id"]!!.asString // This can't be null
+            if (serverIdString == Bukkit.getServerId())
+                return@parser
+
+            val uuid = UUID.fromString(jsonObject["uuid"]!!.asString) // This can't be null
+            if (!offlinePlayerExists(uuid) && !onlinePlayerExists(uuid))
+                return@parser
+
+            getOfflinePlayer(uuid).load()
+        }
     }
 
     /**

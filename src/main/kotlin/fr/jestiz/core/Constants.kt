@@ -24,7 +24,8 @@ object Constants {
     const val REDIS_UUID_LOOKUP_CHANNEL = "name-to-uuid"
     const val REDIS_UUID_LOOKUP_CHANNEL_RESPONSE = "response_name-to-uuid"
     const val REDIS_SERVER_HEARTBEAT_CHANNEL = "server-heartbeat"
-
+    const val REDIS_PLAYER_UPDATE_CHANNEL = "player-update"
+    
     const val REDIS_NAME_UUID_HSET = "name-to-uuid"
     const val REDIS_PUNISHMENTS_LAST_ID_KEY = "last-ids:punishments"
 
