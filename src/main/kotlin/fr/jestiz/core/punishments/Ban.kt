@@ -13,7 +13,8 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRe
         return Configurations.getConfigMessage("punishment.ban.kick-message",
             "%ban_date%" to Constants.DATE_FORMAT.format(issued),
             "%duration%" to if (duration == Long.MAX_VALUE) "jamais" else Constants.DATE_FORMAT.format(expire),
-            "%reason%" to reason)
+            "%reason%" to reason,
+            "%id%" to id)
     }
 
     override fun execute(reason: String): Boolean {

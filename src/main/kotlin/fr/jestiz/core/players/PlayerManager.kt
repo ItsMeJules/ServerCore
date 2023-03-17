@@ -153,7 +153,7 @@ object PlayerManager {
         RedisServer.publish(Constants.REDIS_UUID_LOOKUP_CHANNEL) {
             val json = JsonObject()
             json.addProperty("name", name)
-            return@publish json.toString()
+            return@publish json
         }
 
         return completableFuture.get()

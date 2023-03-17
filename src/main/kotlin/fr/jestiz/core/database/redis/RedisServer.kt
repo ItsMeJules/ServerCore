@@ -1,8 +1,10 @@
 package fr.jestiz.core.database.redis
 
+import com.google.gson.JsonObject
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.database.redis.pubsub.RedisSubscriber
+import org.bukkit.Bukkit
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import java.io.FileNotFoundException
@@ -26,11 +28,21 @@ object RedisServer {
         get() = !pool.isClosed
 
     fun publish(channel: String, publisher: RedisPublisher) {
-        runCommand { it.publish(channel, publisher.formatChannelMessage()) }
+        runCommand {
+            val jsonObject = publisher.formatChannelMessage()
+
+            jsonObject.addProperty("server-id", Bukkit.getServerId())
+            it.publish(channel, jsonObject.toString())
+        }
     }
 
-    fun publish(channel: String, publisher: () -> String) {
-        runCommand { it.publish(channel, publisher()) }
+    fun publish(channel: String, publisher: () -> JsonObject) {
+        runCommand {
+            val jsonObject = publisher()
+
+            jsonObject.addProperty("server-id", Bukkit.getServerId())
+            it.publish(channel, jsonObject.toString())
+        }
     }
 
     fun newSubscriber(channel: String): RedisSubscriber {

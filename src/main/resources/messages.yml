@@ -8,8 +8,9 @@ punishment:
       - "§2❣ Vous êtes banni de ce serveur ❣"
       - "§2» §aBanni le: §6%ban_date%"
       - "§2» §aRaison: §6%reason%"
+      - "§2» §aID: §6#%id%"
       - ""
-      - "§2» §aCe ban expire le : §6%duration%§2."
+      - "§2» §aCe ban expire le: §6%duration%§2."
       - "§2» §aVous pouvez faire appel sur: §ahttps://onima.fr/forum/punitions"
       - "§2§m-|§m-------------------------|§m-------------------------|-"
     staff-message:
@@ -29,6 +30,7 @@ command:
   no-permission: "§cVous n'avez pas l'autorisation d'utiliser cette commande!"
   command-usage: "§cUtilisation: /%name% "
   value-invalid: "§cValeur %val% non valide!"
+  duration-invalid: "§cFormat de temps %val% non reconnu (§n2y6M15d4h30m8s§c)!"
   invalid-world: "§cLe monde %world% n'existe pas!"
   player-not-found: "§cLe joueur %player% n'existe pas!"
   gamemode:

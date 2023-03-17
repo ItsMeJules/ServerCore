@@ -27,11 +27,10 @@ class Core : JavaPlugin() {
         RedisServer.publish(Constants.REDIS_SERVER_HEARTBEAT_CHANNEL, ::publishStarted)
     }
 
-    private fun publishStarted(): String {
+    private fun publishStarted(): JsonObject {
         val jsonObject = JsonObject()
-        jsonObject.addProperty("server-id", Bukkit.getServerId())
         jsonObject.addProperty("status", "started")
-        return jsonObject.toString()
+        return jsonObject
     }
 
     private fun createResources() {
@@ -53,11 +52,10 @@ class Core : JavaPlugin() {
         RedisServer.closeConnections()
     }
 
-    private fun publishStop(): String {
+    private fun publishStop(): JsonObject {
         val jsonObject = JsonObject()
-        jsonObject.addProperty("server-id", Bukkit.getServerId())
         jsonObject.addProperty("status", "stopped")
-        return jsonObject.toString()
+        return jsonObject
     }
 
 

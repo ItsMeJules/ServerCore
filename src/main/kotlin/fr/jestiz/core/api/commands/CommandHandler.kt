@@ -12,7 +12,7 @@ import kotlin.reflect.full.primaryConstructor
 
 object CommandHandler {
 
-    val commands = mutableListOf<RegisteredCommand>()
+    val commands = mutableListOf<ServerCommand>()
     val parameterTypes = mutableMapOf<KType, ParameterProcessor<*>>()
 
     private val commandMap: CommandMap
@@ -49,7 +49,7 @@ object CommandHandler {
         commandClass::class.declaredMemberFunctions.forEach { function ->
             function.annotations
                 .firstOrNull { it.annotationClass == Command::class}
-                ?.let { commandMap.register(Core.instance.name, RegisteredCommand(CommandData(it as Command, commandClass, function))) }
+                ?.let { commandMap.register(Core.instance.name, ServerCommand(CommandData(it as Command, commandClass, function))) }
                 ?: return@forEach
         }
     }

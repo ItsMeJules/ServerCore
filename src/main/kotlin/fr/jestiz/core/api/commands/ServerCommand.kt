@@ -4,19 +4,15 @@ import fr.jestiz.core.Core
 import fr.jestiz.core.api.commands.parameters.ParameterData
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.players.PlayerManager
-import org.apache.commons.lang.mutable.Mutable
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
 import org.bukkit.util.StringUtil
-import java.util.*
-import javax.swing.plaf.multi.MultiToolBarUI
 import kotlin.reflect.KType
-import kotlin.reflect.full.withNullability
 
 
-class RegisteredCommand(private val commandData: CommandData) : org.bukkit.command.Command(commandData.names[0]) {
+class ServerCommand(private val commandData: CommandData) : org.bukkit.command.Command(commandData.names[0]) {
 
     init {
         CommandHandler.commands.add(this)

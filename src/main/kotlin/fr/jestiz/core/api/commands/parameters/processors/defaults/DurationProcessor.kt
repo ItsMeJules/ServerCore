@@ -15,7 +15,7 @@ class DurationProcessor : ParameterProcessor<DurationParser>() {
     override fun get(sender: CommandSender, source: String): DurationParser? {
         val duration = DurationParser(source)
         if (duration.millisTime < 0) {
-            sender.sendMessage(Configurations.getConfigMessage("command.value-invalid", "%val%" to source))
+            sender.sendMessage(Configurations.getConfigMessage("command.duration-invalid", "%val%" to source))
             return null
         }
         return duration

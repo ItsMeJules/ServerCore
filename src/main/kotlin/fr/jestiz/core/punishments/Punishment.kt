@@ -4,19 +4,21 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import fr.jestiz.core.Constants
 import fr.jestiz.core.configs.Configurations
+import fr.jestiz.core.database.redis.RedisServer
+import fr.jestiz.core.database.redis.RedisWriter
+import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.players.ServerPlayer
-import fr.jestiz.core.database.redis.RedisServer
-import fr.jestiz.core.database.redis.pubsub.RedisPublisher
+import org.bukkit.Bukkit
 import java.util.*
 
-abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher {
-    private var id = 0
+abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher, RedisWriter {
+    protected var id = 0
 
     var reason: String = Configurations.getConfigMessage("punishment.ban.no-reason")
-    var remover: UUID? = null
-    var removeReason: String? = null
-    val removed: Boolean
+    private var remover: UUID? = null
+    private var removeReason: String? = null
+    private val removed: Boolean
         get() = removeReason != null
     var silent = false
     var issued = System.currentTimeMillis()
@@ -50,6 +52,14 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
     abstract fun errorMessage(): String
 
+    /**
+     * Executes the punishment, kicks the player if the class
+     * implements [ServerRestrictedPunishment].
+     * It writes it to the redis database and publishes a message.
+     *
+     * @return false if the player already has this punishment.
+     * true if not.
+     */
     open fun execute(reason: String): Boolean {
         val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
 
@@ -65,6 +75,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
         id = ID++
         punishments.add(this)
+        writeToRedis()
         RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
         return true
     }
@@ -78,10 +89,9 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         return true
     }
 
-    override fun formatChannelMessage(): String {
+    override fun formatChannelMessage(): JsonObject {
         val json = JsonObject()
 
-        json.addProperty("data-type", "punishment")
         json.addProperty("id", id)
         json.addProperty("added", !removed)
         json.addProperty("silent", silent)
@@ -96,17 +106,42 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
             json.addProperty("reason", removeReason)
         }
 
-        return json.toString()
+        return json
+    }
+
+    override fun writeToRedis(): Boolean {
+        RedisServer.runCommand { redis ->
+            redis.hmset(
+                "punishment:$id",
+                mapOf("sender" to sender.toString(),
+                        "receiver" to receiver.toString(),
+                        "reason" to reason,
+                        "remover" to if (remover == null) "" else remover.toString(),
+                        "remove_reason" to if (removeReason == null) "" else removeReason,
+                        "silent" to silent.toString(),
+                        "issued" to issued.toString(),
+                        "expire" to expire.toString())
+            )
+        }
+
+        return true
     }
 
     companion object {
-        var ID = 0
+        private var ID = 0
+
+        init {
+            RedisServer.runCommand { redis -> ID = redis.get(Constants.REDIS_PUNISHMENTS_LAST_ID_KEY).toInt() }
+        }
 
         fun subscribe() {
             val sub = RedisServer.newSubscriber(Constants.PUNISHMENT_CHANNEL)
 
             sub.parser { msg ->
                 val jsonObject = JsonParser.parseString(msg).asJsonObject
+
+                if (jsonObject["server-id"]!!.asString != Bukkit.getServerId())
+                    ID++
             }
         }
     }

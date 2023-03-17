@@ -18,7 +18,7 @@ class PunishmentCommands {
     @Command(names = ["ban"], permission = Constants.PERMISSION_BAN_COMMAND, async = true)
     fun banCommand(sender: CommandSender,
                    @Parameter(name = "target") offlineServerPlayer: OfflineServerPlayer,
-                   @Parameter(name = "duration", required = false, default = "EVER") duration: DurationParser,
+                   @Parameter(name = "duration", default = "EVER") duration: DurationParser,
                    @Parameter(name = "reason", concat = true) reason: String)
     {
         val ban = Ban(if (sender is ConsoleCommandSender) Constants.CONSOLE_UUID else (sender as Player).uniqueId, offlineServerPlayer.uuid)
