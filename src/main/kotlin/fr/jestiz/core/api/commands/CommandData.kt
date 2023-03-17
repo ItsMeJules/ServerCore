@@ -41,6 +41,8 @@ class CommandData(command: Command, val commandClass: Any, val function: KFuncti
             var kTypeParameter = function.parameters[i].type
             if (kTypeParameter.isMarkedNullable)
                 kTypeParameter = kTypeParameter.withNullability(false)
+            else if (!parameterAnnotation.required)
+                throw IllegalArgumentException("Function ${function.name} has a parameter that's not required but argument is not marked nullable!")
 
             parameters.add(ParameterData(parameterAnnotation, kTypeParameter))
         }
