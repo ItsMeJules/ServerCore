@@ -1,7 +1,7 @@
 package fr.jestiz.core.commands
 
 import fr.jestiz.core.Constants
-import fr.jestiz.core.api.commands.Command
+import fr.jestiz.core.api.commands.annotations.Command
 import fr.jestiz.core.api.commands.parameters.Parameter
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.players.ServerPlayer

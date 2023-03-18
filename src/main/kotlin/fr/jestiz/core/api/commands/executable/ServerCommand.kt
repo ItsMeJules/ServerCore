@@ -1,6 +1,8 @@
-package fr.jestiz.core.api.commands
+package fr.jestiz.core.api.commands.executable
 
 import fr.jestiz.core.Core
+import fr.jestiz.core.api.commands.data.CommandData
+import fr.jestiz.core.api.commands.CommandHandler
 import fr.jestiz.core.api.commands.parameters.ParameterData
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.players.PlayerManager
@@ -12,7 +14,9 @@ import org.bukkit.util.StringUtil
 import kotlin.reflect.KType
 
 
-class ServerCommand(private val commandData: CommandData) : org.bukkit.command.Command(commandData.names[0]) {
+class ServerCommand(val commandData: CommandData) : org.bukkit.command.Command(commandData.names[0]) {
+
+    val subCommands = mutableListOf<ServerSubCommand>()
 
     init {
         CommandHandler.commands.add(this)
@@ -22,6 +26,8 @@ class ServerCommand(private val commandData: CommandData) : org.bukkit.command.C
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>): Boolean {
         if (!validateSender(sender))
             return false
+
+        findSubCommand(args)?.apply { return execute(sender, commandLabel, args) }
 
         if (commandData.async) {
             Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
@@ -54,7 +60,11 @@ class ServerCommand(private val commandData: CommandData) : org.bukkit.command.C
             }
 
             return completions;
-        } else if (args.size < commandData.parameters.size) {
+        }
+
+        findSubCommand(args)?.apply { return tabComplete(sender, label, args) } // this will never work
+
+        if (args.size < commandData.parameters.size) {
             val paramData = commandData.parameters[args.size - 1]
 
             CommandHandler.parameterTypes[paramData.kTypeParameter]?.let { paramProcessor ->
@@ -64,6 +74,27 @@ class ServerCommand(private val commandData: CommandData) : org.bukkit.command.C
 
         return super.tabComplete(sender, label, args)
     }
+
+    private fun findSubCommand(args: Array<out String>): ServerSubCommand? {
+        for (subCommand in subCommands) {
+            val data = subCommand.subCommandData
+            if (args.size < data.argsLength)
+                continue
+
+            var i = 0
+            while (i < args.size) {
+                if (data.subArgs[i] != args[i])
+                    break
+                i++
+            }
+
+            if (i != data.argsLength)
+                continue
+            return subCommand
+        }
+        return null
+    }
+
 
     private fun transformParameters(sender: CommandSender, args: Array<out String>): MutableList<Any?>? {
         val commandSender: Any = if (!commandData.playerOnly) sender else PlayerManager.getOnlinePlayer((sender as Player).uniqueId)

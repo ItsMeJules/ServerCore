@@ -145,7 +145,6 @@ object PlayerManager {
     // Bukkit.getOfflinePlayer(String) is very slow (network I/O) hence this function.
     private fun getUUID(name: String): UUID? {
         // Fetches from plugin cache
-        println("fetching plugin cache.")
         var name = name.lowercase(Locale.getDefault())
         var uuid = nameToUUID[name]
         uuid?.let { return uuid }
@@ -154,7 +153,6 @@ object PlayerManager {
             throw RuntimeException("Trying to retrieve an UUID in database from the main thread!")
 
         // Fetches from redis cache
-        println("fetching redis cache.")
         var uuidString: String? = null
         RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_NAME_UUID_HSET, name) }
         uuidString?.let { return UUID.fromString(uuidString) }
@@ -163,7 +161,6 @@ object PlayerManager {
         val completableFuture = CompletableFuture<UUID>()
         completableFutures[name] = completableFuture
 
-        println("fetching db.")
         RedisServer.publish(Constants.REDIS_UUID_LOOKUP_CHANNEL) {
             val json = JsonObject()
             json.addProperty("name", name)

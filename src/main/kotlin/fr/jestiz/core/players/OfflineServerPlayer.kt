@@ -29,6 +29,8 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
     }
 
     override fun writeToRedis(): Boolean {
+
+
         RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) {
             val jsonObject = JsonObject()
 
@@ -36,8 +38,6 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
 
             return@publish jsonObject
         }
-
-        
         return true
     }
 

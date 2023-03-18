@@ -1,6 +1,7 @@
-package fr.jestiz.core.api.commands
+package fr.jestiz.core.api.commands.data
 
 import fr.jestiz.core.Core
+import fr.jestiz.core.api.commands.annotations.Command
 import fr.jestiz.core.api.commands.parameters.Parameter
 import fr.jestiz.core.api.commands.parameters.ParameterData
 import java.lang.IllegalArgumentException
@@ -13,7 +14,8 @@ class CommandData(command: Command, val commandClass: Any, val function: KFuncti
 
     // Makes it so you can use /plugin:command
     val names = command.names.flatMap {
-        listOf(it.lowercase(Locale.getDefault()), "${Core.instance.name}:${it.lowercase(Locale.getDefault())}")
+        var name = it.lowercase(Locale.getDefault())
+        listOf(name, "${Core.instance.name}:$name")
     }
 
     val permission = command.permission

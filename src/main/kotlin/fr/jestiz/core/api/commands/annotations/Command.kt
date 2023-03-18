@@ -1,4 +1,4 @@
-package fr.jestiz.core.api.commands
+package fr.jestiz.core.api.commands.annotations
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.FUNCTION)
@@ -10,4 +10,5 @@ annotation class Command(
     val description: String = "",
     val consoleOnly: Boolean = false,
     val playerOnly: Boolean = false
+
 )

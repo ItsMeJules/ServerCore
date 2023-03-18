@@ -2,8 +2,15 @@ package fr.jestiz.core.api.commands
 
 import com.google.common.reflect.ClassPath
 import fr.jestiz.core.Core
+import fr.jestiz.core.api.commands.annotations.Command
+import fr.jestiz.core.api.commands.annotations.SubCommand
+import fr.jestiz.core.api.commands.data.CommandData
+import fr.jestiz.core.api.commands.data.SubCommandData
+import fr.jestiz.core.api.commands.executable.ServerCommand
+import fr.jestiz.core.api.commands.executable.ServerSubCommand
 import fr.jestiz.core.api.commands.parameters.processors.ParameterProcessor
 import org.bukkit.command.CommandMap
+import java.lang.IllegalArgumentException
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.full.declaredMemberFunctions
@@ -49,8 +56,25 @@ object CommandHandler {
         commandClass::class.declaredMemberFunctions.forEach { function ->
             function.annotations
                 .firstOrNull { it.annotationClass == Command::class}
-                ?.let { commandMap.register(Core.instance.name, ServerCommand(CommandData(it as Command, commandClass, function))) }
-                ?: return@forEach
+                ?.let {
+                    val commandData = CommandData(it as Command, commandClass, function)
+                    commandMap.register(Core.instance.name, ServerCommand(commandData))
+                } ?: return@forEach
+        }
+
+        commandClass::class.declaredMemberFunctions.forEach { function ->
+            function.annotations
+                .firstOrNull { it.annotationClass == SubCommand::class}
+                ?.let {
+                    val subCommandData = SubCommandData(it as SubCommand, commandClass, function)
+                    for (command in commands) {
+                        if (!command.commandData.names.contains(subCommandData.parentCommand))
+                            continue
+                        command.subCommands.add(ServerSubCommand(subCommandData))
+                        return@let
+                    }
+                    throw IllegalArgumentException("${subCommandData.parentCommand} was not found!")
+                } ?: return@forEach
         }
     }
 
