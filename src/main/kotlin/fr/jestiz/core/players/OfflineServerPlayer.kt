@@ -30,6 +30,11 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
         return true
     }
 
+    open fun onDisconnect(): Boolean {
+
+        return true
+    }
+
     fun isOnline(): Boolean { // A changer pour verifier sur tous les serveurs
         return bukkitPlayer.isOnline
     }

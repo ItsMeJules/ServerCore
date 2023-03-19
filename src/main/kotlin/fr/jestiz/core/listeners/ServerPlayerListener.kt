@@ -27,14 +27,7 @@ class ServerPlayerListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onQuitSave(event: PlayerQuitEvent) {
         // Deletes every trace of the player.
-        val serverPlayer = PlayerManager.removeOnlinePlayer(event.player.uniqueId)
-
-        serverPlayer?.let {
-            // Saves the data of the ServerPlayer
-            Bukkit.getScheduler().runTaskAsynchronously(Core.instance) { it.writeToRedis() }
-            // Initializes a tmp OfflineServerPlayer
-            PlayerManager.getOfflinePlayer(it.uuid).transferInstance(it)
-        }
+        PlayerManager.removeOnlinePlayer(event.player.uniqueId)?.apply { onDisconnect() }
     }
 
 }

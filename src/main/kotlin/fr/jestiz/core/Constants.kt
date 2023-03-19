@@ -28,6 +28,7 @@ object Constants {
 
     const val REDIS_NAME_UUID_HSET = "name-to-uuid"
     const val REDIS_PUNISHMENTS_LAST_ID_KEY = "last-ids:punishments"
+    const val REDIS_CONNECTED_PLAYERS_LIST = "connected-players"
 
     // UUID
     val CONSOLE_UUID: UUID = UUID.fromString("29f26148-4d55-4b4b-8e07-900fda686a67")
