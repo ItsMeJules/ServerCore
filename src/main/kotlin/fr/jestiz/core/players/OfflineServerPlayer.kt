@@ -20,12 +20,18 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
         get() = Bukkit.getOfflinePlayer(uuid)
     val punishments = mutableListOf<Punishment>()
 
+    var coins = 0
+
     fun <T : Punishment> getPunishments(kClass: KClass<T>)
         = punishments.filterIsInstance(kClass.java).map { it }
 
     open fun load(): Boolean {
         loaded = true
         return true
+    }
+
+    fun isOnline(): Boolean { // A changer pour verifier sur tous les serveurs
+        return bukkitPlayer.isOnline
     }
 
     override fun writeToRedis(): Boolean {

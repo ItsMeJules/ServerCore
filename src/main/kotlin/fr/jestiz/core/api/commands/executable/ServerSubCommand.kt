@@ -86,7 +86,10 @@ class ServerSubCommand(val subCommandData: SubCommandData) {
     }
 
     private fun usage(sender: CommandSender) {
-        val builder = StringBuilder(Configurations.getConfigMessage("command.command-usage").replace("%name%", subCommandData.name))
+        val builder = StringBuilder(Configurations.getConfigMessage("command.command-usage").replace("%name%", subCommandData.parentCommand))
+
+        subCommandData.subArgs.forEach { builder.append(it).append(" ") }
+        builder.trim()
 
         subCommandData.parameters.forEach {
             builder.append(if (it.data.required) "<" else "[")

@@ -38,3 +38,6 @@ command:
     updated: "§eVotre mode de jeu a été mis sur §r%gamemode%."
     updated-to-player: "§eLe mode de jeu de §r%receiver% §ea été mis sur §r%gamemode%."
     updated-by-player: "§eVotre mode de jeu a été mis sur §r%gamemode% §epar §r%sender%."
+  coins:
+    added-to-player: "§eVous avez ajouté §r%coins% §eà §r%receiver%."
+    added-by-player: "%sender% §evous a ajouté §r%coins%."

@@ -27,7 +27,9 @@ class ServerCommand(val commandData: CommandData) : org.bukkit.command.Command(c
         if (!validateSender(sender))
             return false
 
-        findSubCommand(args)?.apply { return execute(sender, commandLabel, args) }
+        findSubCommand(args)?.apply {
+            return execute(sender, commandLabel, args.drop(subCommandData.argsLength).toTypedArray())
+        }
 
         if (commandData.async) {
             Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
