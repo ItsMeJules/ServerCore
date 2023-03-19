@@ -29,7 +29,14 @@ class ServerSubCommand(val subCommandData: SubCommandData) {
     }
 
     fun tabComplete(sender: CommandSender, label: String, args: Array<out String>): MutableList<String> {
+        if (args.size < subCommandData.parameters.size) {
+            val paramData = subCommandData.parameters[args.size - 1]
 
+            CommandHandler.parameterTypes[paramData.kTypeParameter]?.let { paramProcessor ->
+                return paramProcessor.tabComplete(sender, args[args.size - 1]).toMutableList()
+            }
+        }
+        return mutableListOf()
     }
 
     private fun transformParameters(sender: CommandSender, args: Array<out String>): MutableList<Any?>? {

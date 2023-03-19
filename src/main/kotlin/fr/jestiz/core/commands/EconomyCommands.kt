@@ -6,30 +6,31 @@ import fr.jestiz.core.api.commands.annotations.SubCommand
 import fr.jestiz.core.api.commands.parameters.Parameter
 import fr.jestiz.core.players.OfflineServerPlayer
 import fr.jestiz.core.players.ServerPlayer
+import org.bukkit.command.CommandSender
 
 class EconomyCommands {
 
     @Command(names = ["coins"], permission = Constants.PERMISSION_COINS_COMMAND)
-    fun coinsCommand(serverPlayer: ServerPlayer) {
+    fun coinsCommand(sender: CommandSender) {
 
     }
 
     @SubCommand(parentCommand = "coins", name = "add", permission = Constants.PERMISSION_COINS_COMMAND, async = true)
-    fun coinsAddCommand(serverPlayer: ServerPlayer,
+    fun coinsAddCommand(sender: CommandSender,
                      @Parameter(name = "amount") amount: Int,
                      @Parameter(name = "target", required = false) offlineServerPlayer: OfflineServerPlayer?)
     {
     }
 
-    @SubCommand(parentCommand = "coins", name = "remove", permission = Constants.PERMISSION_COINS_COMMAND, async = true)
-    fun coinsRemoveCommand(serverPlayer: ServerPlayer,
+    @SubCommand(parentCommand = "coins", name = "remove server", permission = Constants.PERMISSION_COINS_COMMAND, async = true)
+    fun coinsRemoveCommand(sender: CommandSender,
                         @Parameter(name = "amount") amount: Int,
                         @Parameter(name = "target", required = false) offlineServerPlayer: OfflineServerPlayer?)
     {
     }
 
     @SubCommand(parentCommand = "coins", name = "set", permission = Constants.PERMISSION_COINS_COMMAND, async = true)
-    fun coinsSetCommand(serverPlayer: ServerPlayer,
+    fun coinsSetCommand(sender: CommandSender,
                         @Parameter(name = "amount") amount: Int,
                         @Parameter(name = "target", required = false) offlineServerPlayer: OfflineServerPlayer?)
     {

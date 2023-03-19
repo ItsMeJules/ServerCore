@@ -47,22 +47,22 @@ class ServerCommand(val commandData: CommandData) : org.bukkit.command.Command(c
         if (commandData.permission != "" && !sender.hasPermission(commandData.permission))
             return mutableListOf()
 
-        if (args.isEmpty()) {
-            val completions = mutableListOf<String>()
+        if (subCommands.isNotEmpty()) {
+            findSubCommand(args)?.apply { return tabComplete(sender, label, args) }
 
-            if (StringUtil.startsWithIgnoreCase(name, args[0]))
-                completions.add("/$name")
-            else {
-                for (alias in aliases) {
-                    if (StringUtil.startsWithIgnoreCase(alias, args[0]))
-                        completions.add("/$alias")
-                }
+            val completions = mutableListOf<String>()
+            for (subCommand in subCommands) {
+                val data = subCommand.subCommandData
+
+                if (args.size > data.argsLength)
+                    continue
+
+                if (StringUtil.startsWithIgnoreCase(data.subArgs[args.size - 1], args.last()))
+                    completions.add(data.subArgs[args.size - 1])
             }
 
-            return completions;
+            return completions
         }
-
-        findSubCommand(args)?.apply { return tabComplete(sender, label, args) } // this will never work
 
         if (args.size < commandData.parameters.size) {
             val paramData = commandData.parameters[args.size - 1]
@@ -82,7 +82,7 @@ class ServerCommand(val commandData: CommandData) : org.bukkit.command.Command(c
                 continue
 
             var i = 0
-            while (i < args.size) {
+            while (i < data.argsLength) {
                 if (data.subArgs[i] != args[i])
                     break
                 i++
