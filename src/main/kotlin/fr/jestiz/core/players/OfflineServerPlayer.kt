@@ -8,9 +8,9 @@ import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.punishments.Punishment
 import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
+import redis.clients.jedis.Jedis
 import java.util.*
 import kotlin.reflect.KClass
-import kotlinx.coroutines.*
 
 open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
 
@@ -32,21 +32,20 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
         return true
     }
 
-    open fun onDisconnect(): Boolean {
-        return true
-    }
-
     fun ifOnline(callback: (ServerPlayer) -> Unit): Unit {
         Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
             RedisServer.runCommand {
-                val isMember = it.sismember(Constants.REDIS_CONNECTED_PLAYERS_LIST, uuid.toString())
-                if (isMember)
+                if (it.sismember(Constants.REDIS_KEY_CONNECTED_PLAYERS_LIST, uuid.toString()))
                     callback(this as ServerPlayer)
             }
         }
     }
 
-    override fun writeToRedis(): Boolean {
+    // TODO only write data that has changed to redis. (could implement writing queue)
+    override fun writeToRedis(redis: Jedis): Boolean {
+        redis.set("$uuid:${Constants.REDIS_KEY_PLAYER_DATA_HSET_COINS}", coins.toString())
+        punishments.forEach { it.writeToRedis(redis) }
+
         RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) {
             val jsonObject = JsonObject()
 

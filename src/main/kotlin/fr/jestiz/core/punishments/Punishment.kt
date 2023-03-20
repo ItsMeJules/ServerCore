@@ -10,11 +10,12 @@ import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.players.ServerPlayer
 import org.bukkit.Bukkit
+import redis.clients.jedis.Jedis
 import java.lang.RuntimeException
 import java.util.*
 
 abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher, RedisWriter {
-    protected var id = 0
+    var id = 0
 
     var reason: String = Configurations.getConfigMessage("punishment.ban.no-reason")
     private var remover: UUID? = null
@@ -76,7 +77,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
         id = ID++
         punishments.add(this)
-        writeToRedis()
+        RedisServer.runCommand { writeToRedis(it) }
         RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
         return true
     }
@@ -110,15 +111,13 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         return json
     }
 
-    override fun writeToRedis(): Boolean {
+    override fun writeToRedis(redis: Jedis): Boolean {
         if (Bukkit.isPrimaryThread())
             throw RuntimeException("Trying to save a punishment from the main thread!")
 
         RedisServer.runCommand { redis ->
-            redis.hmset(
-                "punishment:$id",
+            redis.hmset("$receiver:${Constants.REDIS_KEY_PLAYER_DATA_PUNISHMENTS}:$id",
                 mapOf("sender" to sender.toString(),
-                        "receiver" to receiver.toString(),
                         "reason" to reason,
                         "remover" to if (remover == null) "" else remover.toString(),
                         "remove_reason" to if (removeReason == null) "" else removeReason,
@@ -135,7 +134,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         private var ID = 0
 
         init { // No need for async as it's at startup
-            RedisServer.runCommand { redis -> ID = redis.get(Constants.REDIS_PUNISHMENTS_LAST_ID_KEY).toInt() }
+            RedisServer.runCommand { redis -> ID = redis.get(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID_KEY).toInt() }
         }
 
         fun subscribe() {

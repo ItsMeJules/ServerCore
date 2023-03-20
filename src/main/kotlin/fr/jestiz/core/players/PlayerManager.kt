@@ -23,7 +23,7 @@ object PlayerManager {
     private val completableFutures = mutableMapOf<String, CompletableFuture<UUID>>()
 
     init {
-        RedisServer.newSubscriber(Constants.REDIS_UUID_LOOKUP_CHANNEL_RESPONSE).parser { msg ->
+        RedisServer.newSubscriber(Constants.REDIS_UUID_LOOKUP_RESPONSE_CHANNEL).parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
             val name = jsonObject["name"]!!.asString // This can't be null
 
@@ -154,7 +154,7 @@ object PlayerManager {
 
         // Fetches from redis cache
         var uuidString: String? = null
-        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_NAME_UUID_HSET, name) }
+        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_KEY_NAME_UUID_HSET, name) }
         uuidString?.let { return UUID.fromString(uuidString) }
 
         // Fetches from database
@@ -175,7 +175,7 @@ object PlayerManager {
             throw RuntimeException("Trying to update the UUID cache from the main thread!")
 
         nameToUUID[name.lowercase()] = uuid;
-        RedisServer.runCommand { it.hset(Constants.REDIS_NAME_UUID_HSET, name.lowercase(), uuid.toString()) }
+        RedisServer.runCommand { it.hset(Constants.REDIS_KEY_NAME_UUID_HSET, name.lowercase(), uuid.toString()) }
     }
 
     fun getOnlinePlayers(): List<ServerPlayer> {
@@ -183,6 +183,6 @@ object PlayerManager {
     }
 
     fun saveServerPlayers() {
-        players.values.forEach { it.writeToRedis() }
+        RedisServer.runCommand { redis -> players.values.forEach { it.writeToRedis(redis) } }
     }
 }

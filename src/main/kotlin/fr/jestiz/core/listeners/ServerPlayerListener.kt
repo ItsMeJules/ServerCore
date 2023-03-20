@@ -14,20 +14,15 @@ class ServerPlayerListener : Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     fun onPreLoginSetup(event: AsyncPlayerPreLoginEvent) {
-        val serverPlayer = PlayerManager.getOnlinePlayer(event.uniqueId)
-
-        if (!serverPlayer.loaded && !serverPlayer.load()) {
-            event.loginResult = AsyncPlayerPreLoginEvent.Result.KICK_OTHER
-            event.kickMessage = Configurations.getConfigMessage("error.player-load")
-        }
-
-        PlayerManager.updateUUIDCache(event.name, event.uniqueId)
+        PlayerManager.getOnlinePlayer(event.uniqueId).onJoin(event)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onQuitSave(event: PlayerQuitEvent) {
         // Deletes every trace of the player.
-        PlayerManager.removeOnlinePlayer(event.player.uniqueId)?.apply { onDisconnect() }
+        PlayerManager.removeOnlinePlayer(event.player.uniqueId)?.apply {
+            Bukkit.getScheduler().runTaskAsynchronously(Core.instance) { onDisconnect() }
+        }
     }
 
 }
