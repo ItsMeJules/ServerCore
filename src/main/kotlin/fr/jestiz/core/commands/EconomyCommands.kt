@@ -26,8 +26,8 @@ class EconomyCommands {
         sender.sendMessage(Configurations.getConfigMessage("command.coins.added-to-player",
             "%coins%" to amount,
             "%receiver%" to offlineServerPlayer.bukkitPlayer.name))
-        if (offlineServerPlayer.isOnline()) {
-            (offlineServerPlayer as ServerPlayer).player.sendMessage(Configurations.getConfigMessage("command.coins.added-by-player",
+        offlineServerPlayer.ifOnline {
+            it.player.sendMessage(Configurations.getConfigMessage("command.coins.added-by-player",
                 "%coins%" to amount,
                 "%sender%" to sender.name))
         }

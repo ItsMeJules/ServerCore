@@ -10,6 +10,7 @@ import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.players.ServerPlayer
 import org.bukkit.Bukkit
+import java.lang.RuntimeException
 import java.util.*
 
 abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher, RedisWriter {
@@ -110,6 +111,9 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     }
 
     override fun writeToRedis(): Boolean {
+        if (Bukkit.isPrimaryThread())
+            throw RuntimeException("Trying to save a punishment from the main thread!")
+
         RedisServer.runCommand { redis ->
             redis.hmset(
                 "punishment:$id",
@@ -130,7 +134,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     companion object {
         private var ID = 0
 
-        init {
+        init { // No need for async as it's at startup
             RedisServer.runCommand { redis -> ID = redis.get(Constants.REDIS_PUNISHMENTS_LAST_ID_KEY).toInt() }
         }
 

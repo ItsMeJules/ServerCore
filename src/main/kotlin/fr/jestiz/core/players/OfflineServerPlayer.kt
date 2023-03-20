@@ -2,6 +2,7 @@ package fr.jestiz.core.players
 
 import com.google.gson.JsonObject
 import fr.jestiz.core.Constants
+import fr.jestiz.core.Core
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.punishments.Punishment
@@ -9,6 +10,7 @@ import org.bukkit.Bukkit
 import org.bukkit.OfflinePlayer
 import java.util.*
 import kotlin.reflect.KClass
+import kotlinx.coroutines.*
 
 open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
 
@@ -31,17 +33,20 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
     }
 
     open fun onDisconnect(): Boolean {
-
         return true
     }
 
-    fun isOnline(): Boolean { // A changer pour verifier sur tous les serveurs
-        return bukkitPlayer.isOnline
+    fun ifOnline(callback: (ServerPlayer) -> Unit): Unit {
+        Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
+            RedisServer.runCommand {
+                val isMember = it.sismember(Constants.REDIS_CONNECTED_PLAYERS_LIST, uuid.toString())
+                if (isMember)
+                    callback(this as ServerPlayer)
+            }
+        }
     }
 
     override fun writeToRedis(): Boolean {
-
-
         RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) {
             val jsonObject = JsonObject()
 

@@ -171,6 +171,9 @@ object PlayerManager {
     }
 
     fun updateUUIDCache(name: String, uuid: UUID) {
+        if (Bukkit.isPrimaryThread())
+            throw RuntimeException("Trying to update the UUID cache from the main thread!")
+
         nameToUUID[name.lowercase()] = uuid;
         RedisServer.runCommand { it.hset(Constants.REDIS_NAME_UUID_HSET, name.lowercase(), uuid.toString()) }
     }

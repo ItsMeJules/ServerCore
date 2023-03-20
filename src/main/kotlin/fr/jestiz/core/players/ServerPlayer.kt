@@ -5,6 +5,7 @@ import fr.jestiz.core.Core
 import fr.jestiz.core.database.redis.RedisServer
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import java.lang.RuntimeException
 import java.util.*
 
 
@@ -16,18 +17,27 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
         get() = Bukkit.getPlayer(uuid)
 
     override fun load(): Boolean {
+        if (Bukkit.isPrimaryThread())
+            throw RuntimeException("Trying to load a player from the main thread!")
+
         if (PlayerManager.offlinePlayerExists(uuid)) {
             transferInstance(PlayerManager.getOfflinePlayer(uuid))
         }
 
-        RedisServer.runCommand { it.rpush(Constants.REDIS_CONNECTED_PLAYERS_LIST, uuid.toString()) }
+        RedisServer.runCommand { it.sadd(Constants.REDIS_CONNECTED_PLAYERS_LIST, uuid.toString()) }
 
         return super.load()
     }
 
     override fun onDisconnect(): Boolean {
+        if (Bukkit.isPrimaryThread())
+            throw RuntimeException("Trying to save player info from the main thread!")
+
         // Saves the data of the ServerPlayer
-        Bukkit.getScheduler().runTaskAsynchronously(Core.instance) { writeToRedis() }
+        Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
+            RedisServer.runCommand { it.srem(Constants.REDIS_CONNECTED_PLAYERS_LIST, uuid.toString()) }
+            writeToRedis()
+        }
         // Initializes a tmp OfflineServerPlayer
         PlayerManager.getOfflinePlayer(uuid).transferInstance(this)
         return super.onDisconnect()
