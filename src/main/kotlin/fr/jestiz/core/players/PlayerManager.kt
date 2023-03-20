@@ -7,6 +7,7 @@ import fr.jestiz.core.database.redis.RedisServer
 import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
 import org.bukkit.Bukkit
+import redis.clients.jedis.Jedis
 import java.lang.RuntimeException
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -32,11 +33,11 @@ object PlayerManager {
                     if (!jsonUuid.isJsonNull) {
                         val uuid = UUID.fromString(jsonUuid.asString)
                         it.complete(uuid)
-                        updateUUIDCache(name, uuid)
+                        RedisServer.runCommand { redis -> updateUUIDCache(redis, name, uuid) }
                     } else
                         it.complete(null)
                 } ?: it.complete(null)
-            }
+            } ?: throw RuntimeException("Completable future $name not found when uuid lookup response was received!")
         }
 
         RedisServer.newSubscriber(Constants.REDIS_PLAYER_UPDATE_CHANNEL).parser { msg ->
@@ -161,7 +162,7 @@ object PlayerManager {
         val completableFuture = CompletableFuture<UUID>()
         completableFutures[name] = completableFuture
 
-        RedisServer.publish(Constants.REDIS_UUID_LOOKUP_CHANNEL) {
+        RedisServer.publish(Constants.REDIS_UUID_LOOKUP_REQUEST_CHANNEL) {
             val json = JsonObject()
             json.addProperty("name", name)
             return@publish json
@@ -170,12 +171,12 @@ object PlayerManager {
         return completableFuture.get()
     }
 
-    fun updateUUIDCache(name: String, uuid: UUID) {
+    fun updateUUIDCache(redis: Jedis, name: String, uuid: UUID) {
         if (Bukkit.isPrimaryThread())
             throw RuntimeException("Trying to update the UUID cache from the main thread!")
 
         nameToUUID[name.lowercase()] = uuid;
-        RedisServer.runCommand { it.hset(Constants.REDIS_KEY_NAME_UUID_HSET, name.lowercase(), uuid.toString()) }
+        redis.hset(Constants.REDIS_KEY_NAME_UUID_HSET, name.lowercase(), uuid.toString())
     }
 
     fun getOnlinePlayers(): List<ServerPlayer> {

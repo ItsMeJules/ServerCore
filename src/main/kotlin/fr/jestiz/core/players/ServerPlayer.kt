@@ -27,10 +27,7 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
             transferInstance(PlayerManager.getOfflinePlayer(uuid))
         }
 
-        RedisServer.runCommand {redis ->
-            redis.sadd(Constants.REDIS_KEY_CONNECTED_PLAYERS_LIST, uuid.toString())
-            redis
-        }
+        RedisServer.runCommand { it.sadd(Constants.REDIS_KEY_CONNECTED_PLAYERS_LIST, uuid.toString()) }
 
         return super.load()
     }
@@ -41,7 +38,7 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
             event.kickMessage = Configurations.getConfigMessage("error.player-load")
         }
 
-        PlayerManager.updateUUIDCache(event.name, event.uniqueId)
+        RedisServer.runCommand { PlayerManager.updateUUIDCache(it, event.name, event.uniqueId) }
         return true
     }
 
@@ -63,7 +60,7 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
     override fun writeToRedis(redis: Jedis): Boolean {
         super.writeToRedis(redis)
 
-        PlayerManager.updateUUIDCache(super.bukkitPlayer.name, uuid)
+        PlayerManager.updateUUIDCache(redis, super.bukkitPlayer.name, uuid)
 
         return true
     }

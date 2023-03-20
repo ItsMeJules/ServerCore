@@ -21,7 +21,7 @@ object Constants {
 
     // REDIS
     const val PUNISHMENT_CHANNEL = "punishment"
-    const val REDIS_UUID_LOOKUP_CHANNEL = "name-to-uuid"
+    const val REDIS_UUID_LOOKUP_REQUEST_CHANNEL = "name-to-uuid"
     const val REDIS_UUID_LOOKUP_RESPONSE_CHANNEL = "response_name-to-uuid"
     const val REDIS_SERVER_HEARTBEAT_CHANNEL = "server-heartbeat"
     const val REDIS_PLAYER_UPDATE_CHANNEL = "player-update"
