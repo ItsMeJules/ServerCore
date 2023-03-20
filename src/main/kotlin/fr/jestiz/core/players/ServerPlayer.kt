@@ -57,7 +57,7 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
 
         // Initializes a tmp OfflineServerPlayer
         PlayerManager.getOfflinePlayer(uuid).transferInstance(this)
-        return super.onDisconnect()
+        return true
     }
 
     override fun writeToRedis(redis: Jedis): Boolean {
