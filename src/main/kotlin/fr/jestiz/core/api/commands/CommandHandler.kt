@@ -31,12 +31,12 @@ object CommandHandler {
     }
 
     /**
-     * Registers commands based off a file path
+     * Registers commands based on a file path
      * @param path Path
      */
     fun registerCommands(path: String) {
         ClassPath.from(Core.instance.javaClass.classLoader).allClasses
-            .filter {it.packageName.startsWith(path) }
+            .filter { it.packageName.startsWith(path) }
             .forEach { registerCommands(it.load().kotlin) }
     }
 
@@ -45,6 +45,9 @@ object CommandHandler {
      * @param commandClass Class
      */
     fun registerCommands(commandClass: KClass<*>) {
+        // Needed to check if the compiler didn't generate this class
+        if (commandClass.java.constructors.isEmpty())
+            return
         registerCommands(commandClass.primaryConstructor!!.call())
     }
 
