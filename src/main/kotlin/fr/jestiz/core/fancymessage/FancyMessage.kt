@@ -19,8 +19,11 @@ class FancyMessage(val msg: String) {
     }
 
     private val component = ComponentBuilder(msg)
-    lateinit var clickAction: ClickEvent.Action
-    lateinit var hoverAction: HoverEvent.Action
+
+    var hoverMessage: String? = null
+    var clickMessage: String? = null
+    var clickAction: ClickEvent.Action? = null
+    var hoverAction: HoverEvent.Action? = null
 
     fun clickEvent(event: ClickEvent.Action): FancyMessage {
         clickAction = event
@@ -33,11 +36,13 @@ class FancyMessage(val msg: String) {
     }
 
     fun hover(msg: String): FancyMessage {
+        hoverMessage = msg
         component.event(HoverEvent(hoverAction, ComponentBuilder(msg).create()))
         return this
     }
 
     fun click(msg: String): FancyMessage {
+        clickMessage = msg
         component.event(ClickEvent(clickAction, msg))
         return this
     }

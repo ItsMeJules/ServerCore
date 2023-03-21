@@ -6,11 +6,10 @@ import fr.jestiz.core.fancymessage.FancyMessage
 import fr.jestiz.core.players.PlayerManager
 import org.bukkit.Bukkit
 
-class Broadcaster() {
+class Broadcaster {
 
     private var mustNotHave = false
-
-    private lateinit var permission: String
+    private var permission: String? = null
 
     fun viewPermission(permission: String): Broadcaster {
         this.permission = permission
@@ -32,10 +31,17 @@ class Broadcaster() {
             val json = JsonObject()
 
             json.addProperty("type", "fancy-message")
-            json.addProperty("permission", permission)
             json.addProperty("message", fancyMessage.msg)
-            json.addProperty("click", fancyMessage.clickAction.name)
-            json.addProperty("hover", fancyMessage.hoverAction.name)
+
+            if (permission != null) {
+                json.addProperty("permission", permission)
+                json.addProperty("must-have-permission", !mustNotHave)
+            }
+
+            fancyMessage.clickAction?.let { json.addProperty("click", it.name) }
+            fancyMessage.clickMessage?.let { json.addProperty("click-message", it) }
+            fancyMessage.hoverAction?.let { json.addProperty("hover", it.name) }
+            fancyMessage.hoverMessage?.let { json.addProperty("hover-message", it) }
 
             return@publish json
         }
@@ -46,15 +52,18 @@ class Broadcaster() {
         var built = fancyMessage.build()
         val builder = StringBuilder().append(built.map{ it.toPlainText() })
 
-        if (mustNotHave) {
-            PlayerManager.getOnlinePlayers()
-                .filterNot { it.player.hasPermission(permission) }
-                .forEach { it.player.spigot().sendMessage(*built) }
+        if (permission == null)
+            PlayerManager.getOnlinePlayers().forEach { it.player.spigot().sendMessage(*built) }
+        else if (mustNotHave) {
+                PlayerManager.getOnlinePlayers()
+                    .filterNot { it.player.hasPermission(permission) }
+                    .forEach { it.player.spigot().sendMessage(*built) }
         } else {
             PlayerManager.getOnlinePlayers()
                 .filter { it.player.hasPermission(permission) }
                 .forEach { it.player.spigot().sendMessage(*built) }
         }
+
 
         Bukkit.getConsoleSender().sendMessage(builder.toString()) // I should set the right colors to the console.
     }
