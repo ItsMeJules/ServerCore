@@ -1,11 +1,12 @@
-package fr.jestiz.core.punishments
+package fr.jestiz.core.punishments.types
 
 import fr.jestiz.core.Broadcaster
 import fr.jestiz.core.Constants
-import fr.jestiz.core.Core
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.fancymessage.FancyMessage
 import fr.jestiz.core.players.PlayerManager
+import fr.jestiz.core.punishments.Punishment
+import fr.jestiz.core.punishments.PunishmentType
 import java.util.*
 
 class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, PunishmentType.BAN), ServerRestrictedPunishment {

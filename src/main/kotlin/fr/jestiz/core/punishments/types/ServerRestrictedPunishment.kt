@@ -1,4 +1,4 @@
-package fr.jestiz.core.punishments
+package fr.jestiz.core.punishments.types
 
 import fr.jestiz.core.Core
 import fr.jestiz.core.players.ServerPlayer

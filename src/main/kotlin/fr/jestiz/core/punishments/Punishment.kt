@@ -1,7 +1,6 @@
 package fr.jestiz.core.punishments
 
 import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import fr.jestiz.core.Constants
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.RedisServer
@@ -9,6 +8,8 @@ import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.players.ServerPlayer
+import fr.jestiz.core.punishments.types.Ban
+import fr.jestiz.core.punishments.types.ServerRestrictedPunishment
 import org.bukkit.Bukkit
 import redis.clients.jedis.Jedis
 import java.lang.RuntimeException

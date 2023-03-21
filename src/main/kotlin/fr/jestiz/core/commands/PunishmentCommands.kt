@@ -1,13 +1,11 @@
 package fr.jestiz.core.commands
 
 import fr.jestiz.core.Constants
-import fr.jestiz.core.Core
 import fr.jestiz.core.api.commands.annotations.Command
 import fr.jestiz.core.api.commands.parameters.Parameter
 import fr.jestiz.core.players.OfflineServerPlayer
-import fr.jestiz.core.punishments.Ban
+import fr.jestiz.core.punishments.types.Ban
 import fr.jestiz.core.time.DurationParser
-import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
