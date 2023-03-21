@@ -61,40 +61,6 @@ class Core : JavaPlugin() {
 
     companion object {
         lateinit var instance: Core
-
-        private fun publishToServers(fancyMessage: FancyMessage) {
-            RedisServer.publish(Constants.REDIS_BROADCAST_CHANNEL) {
-                val json = JsonObject()
-
-                json.addProperty("fancy-message", fancyMessage.msg)
-                json.addProperty("fancy-click", fancyMessage.clickAction.name)
-                json.addProperty("fancy-hover", fancyMessage.hoverAction.name)
-
-                return@publish json
-            }
-        }
-
-        fun broadcastWithPerm(fancyMessage: FancyMessage, permission: String) {
-            var built = fancyMessage.build()
-            val builder = StringBuilder().append(built.map{ it.toPlainText() })
-
-            publishToServers(fancyMessage)
-            PlayerManager.getOnlinePlayers()
-                .filter { it.player.hasPermission(permission) }
-                .forEach { it.player.spigot().sendMessage(*built) }
-
-            Bukkit.getConsoleSender().sendMessage(builder.toString()) // I should set the right colors to the console.
-        }
-
-        //no need to send to the console as it has got all permissions.
-        fun broadcastWithoutPerm(fancyMessage: FancyMessage, permission: String) {
-            var built = fancyMessage.build()
-
-            publishToServers(fancyMessage)
-            PlayerManager.getOnlinePlayers()
-                .filterNot { it.player.hasPermission(permission) }
-                .forEach { it.player.spigot().sendMessage(*built) }
-        }
     }
 
 }

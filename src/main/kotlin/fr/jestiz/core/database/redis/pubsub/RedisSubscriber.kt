@@ -1,9 +1,11 @@
 package fr.jestiz.core.database.redis.pubsub
 
+import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisSettings
 import fr.jestiz.core.players.PlayerManager
+import org.bukkit.Bukkit
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPubSub
 import java.lang.RuntimeException
@@ -30,6 +32,10 @@ open class RedisSubscriber(private val channel: String) {
         thread(start = true, isDaemon = true, name = "subscriber_$channel") {
             RedisServer.runCommand { jedis -> jedis.subscribe(pubSub, channel) }
         }
+    }
+
+    fun isServerSender(jsonObject: JsonObject): Boolean {
+        jsonObject["server-id"]?.let { return it.asString == Bukkit.getServerId() } ?: return false
     }
 
     fun close() {
