@@ -16,6 +16,7 @@ class Core : JavaPlugin() {
 
     override fun onEnable() {
         instance = this
+        serverID = UUID.randomUUID()
 
         createResources()
         registerListeners()
@@ -61,6 +62,7 @@ class Core : JavaPlugin() {
 
     companion object {
         lateinit var instance: Core
+        lateinit var serverID: UUID
     }
 
 }
