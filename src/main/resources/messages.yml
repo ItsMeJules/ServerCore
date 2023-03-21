@@ -20,7 +20,7 @@ punishment:
       hover-added: "§eRaison: %reason%"
       hover-removed: "§eRaison: %reason%"
     player-message:
-      added-message: "§a%receiver% a été §cbanni par %sender%."
+      added-message: "§a%receiver% a été §cbanni §apar %sender%."
       removed-message: "§a%receiver% a été débanni par %sender%."
       hover-added: "§eRaison: %reason%"
       hover-removed: "§eRaison: %reason%"

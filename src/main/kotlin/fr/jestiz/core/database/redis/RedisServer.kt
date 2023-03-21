@@ -1,9 +1,15 @@
 package fr.jestiz.core.database.redis
 
 import com.google.gson.JsonObject
+import fr.jestiz.core.Core
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.database.redis.pubsub.RedisSubscriber
+import fr.jestiz.core.database.redis.subscribers.BroadcastSubscriber
+import fr.jestiz.core.database.redis.subscribers.PlayerUpdateSubscriber
+import fr.jestiz.core.database.redis.subscribers.PunishmentSubscriber
+import fr.jestiz.core.database.redis.subscribers.UUIDLookupSubscriber
+import fr.jestiz.core.punishments.Punishment
 import org.bukkit.Bukkit
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -22,25 +28,25 @@ object RedisServer {
 
         if (settings.password.isNotEmpty())
             pool.resource.use { jedis -> jedis.auth(settings.password) }
+
+        BroadcastSubscriber.subscribe()
+        PlayerUpdateSubscriber.subscribe()
+        PunishmentSubscriber.subscribe()
+        UUIDLookupSubscriber.subscribe()
     }
 
     val isActive: Boolean
         get() = !pool.isClosed
 
     fun publish(channel: String, publisher: RedisPublisher) {
-        runCommand {
-            val jsonObject = publisher.formatChannelMessage()
-
-            jsonObject.addProperty("server-id", Bukkit.getServerId())
-            it.publish(channel, jsonObject.toString())
-        }
+        publish(channel, publisher::formatChannelMessage)
     }
 
     fun publish(channel: String, publisher: () -> JsonObject) {
         runCommand {
             val jsonObject = publisher()
 
-            jsonObject.addProperty("server-id", Bukkit.getServerId())
+            jsonObject.addProperty("server-id", Core.serverID.toString())
             it.publish(channel, jsonObject.toString())
         }
     }

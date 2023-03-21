@@ -14,7 +14,7 @@ object UUIDLookupSubscriber : RedisSubscriber(Constants.REDIS_UUID_LOOKUP_RESPON
 
     private val completableFutures = mutableMapOf<String, CompletableFuture<UUID>>()
 
-    init {
+    override fun subscribe() {
         parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
             val name = jsonObject["name"]!!.asString // This can't be null
@@ -30,6 +30,7 @@ object UUIDLookupSubscriber : RedisSubscriber(Constants.REDIS_UUID_LOOKUP_RESPON
                 } ?: it.complete(null)
             } ?: throw RuntimeException("Completable future $name not found when uuid lookup response was received!")
         }
+        super.subscribe()
     }
 
     fun askForUUID(name: String): CompletableFuture<UUID> {

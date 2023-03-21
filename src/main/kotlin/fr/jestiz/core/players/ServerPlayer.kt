@@ -38,6 +38,7 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
     }
 
     fun onJoin(redis: Jedis, event: AsyncPlayerPreLoginEvent): Boolean {
+        println("connect: " + System.currentTimeMillis())
         if (!loaded && !load(redis)) {
             event.loginResult = AsyncPlayerPreLoginEvent.Result.KICK_OTHER
             event.kickMessage = Configurations.getConfigMessage("error.player-load")
@@ -48,6 +49,7 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
     }
 
     fun onDisconnect(redis: Jedis): Boolean {
+        println("disconnect: " + System.currentTimeMillis())
         if (Bukkit.isPrimaryThread())
             throw RuntimeException("Trying to save a player info from the main thread!")
 

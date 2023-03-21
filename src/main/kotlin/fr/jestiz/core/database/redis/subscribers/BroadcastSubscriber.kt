@@ -10,9 +10,9 @@ import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.HoverEvent
 import java.lang.RuntimeException
 
-class BroadcastSubscriber : RedisSubscriber(Constants.REDIS_BROADCAST_CHANNEL) {
+object BroadcastSubscriber : RedisSubscriber(Constants.REDIS_BROADCAST_CHANNEL) {
 
-    init {
+    override fun subscribe() {
         parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
 
@@ -21,6 +21,7 @@ class BroadcastSubscriber : RedisSubscriber(Constants.REDIS_BROADCAST_CHANNEL) {
 
             handleMessage(jsonObject)
         }
+        super.subscribe()
     }
 
     private fun handleMessage(jsonObject: JsonObject) {

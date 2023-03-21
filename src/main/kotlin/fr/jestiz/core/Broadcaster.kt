@@ -62,10 +62,8 @@ class Broadcaster {
             PlayerManager.getOnlinePlayers()
                 .filter { it.player.hasPermission(permission) }
                 .forEach { it.player.spigot().sendMessage(*built) }
+            Bukkit.getConsoleSender().sendMessage(builder.toString()) // I should set the right colors to the console.
         }
-
-
-        Bukkit.getConsoleSender().sendMessage(builder.toString()) // I should set the right colors to the console.
     }
 
 }

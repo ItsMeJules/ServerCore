@@ -2,6 +2,7 @@ package fr.jestiz.core.database.redis.pubsub
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import fr.jestiz.core.Core
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisSettings
 import fr.jestiz.core.players.PlayerManager
@@ -35,7 +36,9 @@ open class RedisSubscriber(private val channel: String) {
     }
 
     fun isServerSender(jsonObject: JsonObject): Boolean {
-        jsonObject["server-id"]?.let { return it.asString == Bukkit.getServerId() } ?: return false
+        jsonObject["server-id"]?.let {
+            println(UUID.fromString(it.asString) == Core.serverID)
+            return UUID.fromString(it.asString) == Core.serverID } ?: return false
     }
 
     fun close() {
@@ -43,7 +46,15 @@ open class RedisSubscriber(private val channel: String) {
         subscribers.remove(channel)
     }
 
+    open fun subscribe() {
+        Bukkit.getLogger().info("subscribed to channel $channel")
+    }
+
     companion object {
         val subscribers: MutableMap<String, RedisSubscriber> = HashMap(10)
+
+        fun register(subscriber: RedisSubscriber) {
+            subscriber.subscribe()
+        }
     }
 }
