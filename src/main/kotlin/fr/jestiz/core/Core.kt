@@ -47,6 +47,7 @@ class Core : JavaPlugin() {
 
     override fun onDisable() {
         PlayerManager.saveServerPlayers()
+        Punishment.saveIDs()
 
         RedisServer.publish(Constants.REDIS_SERVER_HEARTBEAT_CHANNEL, ::publishStop)
         RedisServer.closeConnections()
