@@ -24,10 +24,7 @@ class PunishmentCommands {
 
         ban.duration = duration.millisTime
         ban.silent = reason.endsWith("-s")
-
-        Bukkit.getScheduler().runTask(Core.instance) {
-            ban.execute(if (ban.silent) reason.substring(0, reason.length - 2) else reason)
-        }
+        ban.execute(if (ban.silent) reason.substring(0, reason.length - 2) else reason)
     }
 
 }

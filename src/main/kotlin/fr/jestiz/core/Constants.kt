@@ -26,11 +26,14 @@ object Constants {
     const val REDIS_SERVER_HEARTBEAT_CHANNEL = "server-heartbeat"
     const val REDIS_PLAYER_UPDATE_CHANNEL = "player-update"
 
-    const val REDIS_KEY_NAME_UUID_HSET = "name-to-uuid"
-    const val REDIS_KEY_PLAYER_DATA_HSET_COINS = "coins"
-    const val REDIS_KEY_PLAYER_DATA_PUNISHMENTS = "punishments"
-    const val REDIS_KEY_PUNISHMENTS_LAST_ID_KEY = "last-ids:punishments"
+    const val REDIS_KEY_NAME_TO_UUID = "name-to-uuid"
+    const val REDIS_KEY_UUID_TO_NAME = "uuid-to-name"
+    const val REDIS_KEY_PUNISHMENTS_LAST_ID = "last-ids:punishments"
     const val REDIS_KEY_CONNECTED_PLAYERS_LIST = "connected-players"
+
+    const val REDIS_KEY_PLAYER_PUNISHMENTS = "punishments"
+    const val REDIS_KEY_PLAYER_PUNISHMENTS_IDS = "punishments-ids"
+    const val REDIS_KEY_PLAYER_COINS = "coins"
 
     // UUID
     val CONSOLE_UUID: UUID = UUID.fromString("29f26148-4d55-4b4b-8e07-900fda686a67")

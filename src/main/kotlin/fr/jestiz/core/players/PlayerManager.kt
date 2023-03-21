@@ -21,6 +21,7 @@ object PlayerManager {
         .build()
 
     private val nameToUUID = mutableMapOf<String, UUID>()
+    private val uuidToName = mutableMapOf<UUID, String>()
     private val completableFutures = mutableMapOf<String, CompletableFuture<UUID>>()
 
     init {
@@ -40,6 +41,7 @@ object PlayerManager {
             } ?: throw RuntimeException("Completable future $name not found when uuid lookup response was received!")
         }
 
+        // Gets the latest update of the player record if it's cached in the plugin.
         RedisServer.newSubscriber(Constants.REDIS_PLAYER_UPDATE_CHANNEL).parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
 
@@ -51,7 +53,7 @@ object PlayerManager {
             if (!offlinePlayerExists(uuid) && !onlinePlayerExists(uuid))
                 return@parser
 
-            getOfflinePlayer(uuid).load()
+            RedisServer.runCommand { getOfflinePlayer(uuid).load(it) }
         }
     }
 
@@ -146,8 +148,8 @@ object PlayerManager {
     // Bukkit.getOfflinePlayer(String) is very slow (network I/O) hence this function.
     private fun getUUID(name: String): UUID? {
         // Fetches from plugin cache
-        var name = name.lowercase(Locale.getDefault())
-        var uuid = nameToUUID[name]
+        val lowName = name.lowercase(Locale.getDefault())
+        val uuid = nameToUUID[lowName]
         uuid?.let { return uuid }
 
         if (Bukkit.isPrimaryThread())
@@ -155,16 +157,16 @@ object PlayerManager {
 
         // Fetches from redis cache
         var uuidString: String? = null
-        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_KEY_NAME_UUID_HSET, name) }
+        RedisServer.runCommand { uuidString = it.hget(Constants.REDIS_KEY_NAME_TO_UUID, lowName) }
         uuidString?.let { return UUID.fromString(uuidString) }
 
         // Fetches from database
         val completableFuture = CompletableFuture<UUID>()
-        completableFutures[name] = completableFuture
+        completableFutures[lowName] = completableFuture
 
         RedisServer.publish(Constants.REDIS_UUID_LOOKUP_REQUEST_CHANNEL) {
             val json = JsonObject()
-            json.addProperty("name", name)
+            json.addProperty("name", lowName)
             return@publish json
         }
 
@@ -175,8 +177,27 @@ object PlayerManager {
         if (Bukkit.isPrimaryThread())
             throw RuntimeException("Trying to update the UUID cache from the main thread!")
 
-        nameToUUID[name.lowercase()] = uuid;
-        redis.hset(Constants.REDIS_KEY_NAME_UUID_HSET, name.lowercase(), uuid.toString())
+        val lowName = name.lowercase()
+
+        nameToUUID[lowName] = uuid
+        redis.hset(Constants.REDIS_KEY_NAME_TO_UUID, lowName, uuid.toString())
+
+        uuidToName[uuid] = lowName
+        redis.hset(Constants.REDIS_KEY_UUID_TO_NAME, uuid.toString(), lowName)
+    }
+
+    fun hasPlayedBefore(redis: Jedis, uuid: UUID): Boolean {
+        // Fetches from plugin cache
+        uuidToName[uuid]?.let { return true }
+
+        if (Bukkit.isPrimaryThread())
+            throw RuntimeException("Trying to retrieve an UUID in database from the main thread!")
+
+        // Fetches from redis cache
+        redis.hget(Constants.REDIS_KEY_UUID_TO_NAME, uuid.toString())?.let { return true }
+
+        // TODO implement channel message to get from db
+        return false
     }
 
     fun getOnlinePlayers(): List<ServerPlayer> {

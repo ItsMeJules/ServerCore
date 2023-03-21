@@ -46,4 +46,5 @@ class EconomyCommands {
                         @Parameter(name = "target") offlineServerPlayer: OfflineServerPlayer)
     {
     }
+
 }

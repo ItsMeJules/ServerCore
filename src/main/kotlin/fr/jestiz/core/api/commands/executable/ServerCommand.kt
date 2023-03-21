@@ -66,6 +66,7 @@ class ServerCommand(val commandData: CommandData) : org.bukkit.command.Command(c
             return completions
         }
 
+        // it tab completes with 2 times the same name with offlineServerPlayer!! Why??
         if (args.size < commandData.parameters.size) {
             val paramData = commandData.parameters[args.size - 1]
 

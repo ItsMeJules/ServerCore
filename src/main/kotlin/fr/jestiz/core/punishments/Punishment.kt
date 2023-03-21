@@ -14,12 +14,14 @@ import redis.clients.jedis.Jedis
 import java.lang.RuntimeException
 import java.util.*
 
-abstract class Punishment(protected val sender: UUID, protected val receiver: UUID): RedisPublisher, RedisWriter {
+abstract class Punishment(protected val sender: UUID, protected val receiver: UUID, private val type: PunishmentType)
+    : RedisPublisher, RedisWriter {
+
     var id = 0
 
     var reason: String = Configurations.getConfigMessage("punishment.ban.no-reason")
-    private var remover: UUID? = null
-    private var removeReason: String? = null
+    var remover: UUID? = null
+    var removeReason: String? = null
     private val removed: Boolean
         get() = removeReason != null
     var silent = false
@@ -68,16 +70,12 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         if (this in offlinePlayer.punishments)
             return false
 
-        val punishments = offlinePlayer.punishments
-
-        this.reason = reason
-
         if (this is ServerRestrictedPunishment && offlinePlayer is ServerPlayer)
             kick(offlinePlayer, errorMessage())
 
-        id = ID++
-        punishments.add(this)
-        RedisServer.runCommand { writeToRedis(it) }
+        this.reason = reason
+        this.id = ID++
+        offlinePlayer.punishments.add(this)
         RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
         return true
     }
@@ -95,6 +93,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         val json = JsonObject()
 
         json.addProperty("id", id)
+        json.addProperty("receiver", receiver.toString())
         json.addProperty("added", !removed)
         json.addProperty("silent", silent)
         json.addProperty("issued", issued)
@@ -115,17 +114,17 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         if (Bukkit.isPrimaryThread())
             throw RuntimeException("Trying to save a punishment from the main thread!")
 
-        RedisServer.runCommand { redis ->
-            redis.hmset("$receiver:${Constants.REDIS_KEY_PLAYER_DATA_PUNISHMENTS}:$id",
-                mapOf("sender" to sender.toString(),
-                        "reason" to reason,
-                        "remover" to if (remover == null) "" else remover.toString(),
-                        "remove_reason" to if (removeReason == null) "" else removeReason,
-                        "silent" to silent.toString(),
-                        "issued" to issued.toString(),
-                        "expire" to expire.toString())
-            )
-        }
+        redis.rpush("$receiver:${Constants.REDIS_KEY_PLAYER_PUNISHMENTS_IDS}", id.toString())
+        redis.hset("$receiver:${Constants.REDIS_KEY_PLAYER_PUNISHMENTS}:$id",
+            mapOf("type" to type.name,
+                "sender" to sender.toString(),
+                "reason" to reason,
+                "remover" to if (remover == null) "" else remover.toString(),
+                "remove_reason" to if (removeReason == null) "" else removeReason,
+                "silent" to silent.toString(),
+                "issued" to issued.toString(),
+                "expire" to expire.toString())
+        )
 
         return true
     }
@@ -134,7 +133,11 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         private var ID = 0
 
         init { // No need for async as it's at startup
-            RedisServer.runCommand { redis -> ID = redis.get(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID_KEY).toInt() }
+            RedisServer.runCommand { redis -> redis.get(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID)?.let { ID = it.toInt() } }
+
+            RedisServer.newSubscriber(Constants.PUNISHMENT_CHANNEL).parser { msg ->
+
+            }
         }
 
         fun subscribe() {
@@ -146,6 +149,17 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
                 if (jsonObject["server-id"]!!.asString != Bukkit.getServerId())
                     ID++
             }
+        }
+
+        fun from(type: PunishmentType, sender: UUID, receiver: UUID): Punishment {
+            when (type) {
+                PunishmentType.BAN -> return Ban(sender, receiver)
+                else -> throw RuntimeException("Punishment type ${type.name} not handled!")
+            }
+        }
+
+        fun saveIDs() {
+            RedisServer.runCommand { redis -> redis.set(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID, ID.toString()) }
         }
     }
 }
