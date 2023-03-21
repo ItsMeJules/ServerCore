@@ -7,7 +7,7 @@ import fr.jestiz.core.fancymessage.FancyMessage
 import fr.jestiz.core.players.PlayerManager
 import java.util.*
 
-class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRestrictedPunishment {
+class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, PunishmentType.BAN), ServerRestrictedPunishment {
 
     override fun errorMessage(): String {
         return Configurations.getConfigMessage("punishment.ban.kick-message",
@@ -46,7 +46,7 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver), ServerRe
     override fun remove(remover: UUID, removeReason: String): Boolean {
         val removed = super.remove(remover, removeReason)
         val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
-        val senderName = if (Constants.CONSOLE_UUID == remover) "Console" else PlayerManager.getOfflinePlayer(remover!!).bukkitPlayer.name
+        val senderName = if (Constants.CONSOLE_UUID == remover) "Console" else PlayerManager.getOfflinePlayer(remover).bukkitPlayer.name
 
         val staffMessage = Configurations.getConfigMessage("punishment.ban.staff-message.removed-message",
             "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
