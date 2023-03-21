@@ -26,7 +26,11 @@ class BroadcastSubscriber : RedisSubscriber(Constants.REDIS_BROADCAST_CHANNEL) {
     }
 
      private fun handleFancyMessage(jsonObject: JsonObject) {
-        
+
      }
+
+    private fun handleNormalMessage(jsonObject: JsonObject) {
+
+    }
 
 }

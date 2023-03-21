@@ -17,6 +17,11 @@ class Broadcaster() {
         return this
     }
 
+    fun mustHave(): Broadcaster {
+        mustNotHave = false
+        return this
+    }
+
     fun mustNotHave(): Broadcaster {
         mustNotHave = true
         return this

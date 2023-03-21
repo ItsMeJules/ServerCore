@@ -1,5 +1,6 @@
 package fr.jestiz.core.punishments
 
+import fr.jestiz.core.Broadcaster
 import fr.jestiz.core.Constants
 import fr.jestiz.core.Core
 import fr.jestiz.core.configs.Configurations
@@ -22,17 +23,21 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
             "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
             "%receiver%" to receiverName,
             "%sender%" to senderName)
-        Core.broadcastWithPerm(FancyMessage(staffMessage)
+        val permMessage = FancyMessage(staffMessage)
             .hoverEvent(FancyMessage.SHOW_TEXT)
-            .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-added").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
+            .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-added").replace("%reason%", reason))
+
+        Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustHave().broadCastNetwork(permMessage)
 
         if (!silent) {
             val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.added-message",
                 "%receiver%" to receiverName,
                 "%sender%" to senderName)
-            Core.broadcastWithoutPerm(FancyMessage(playerMessage)
+            val noPermMessage = FancyMessage(playerMessage)
                 .hoverEvent(FancyMessage.SHOW_TEXT)
-                .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-added").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
+                .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-added").replace("%reason%", reason))
+
+            Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustNotHave().broadCastNetwork(noPermMessage)
         }
     }
 
@@ -55,18 +60,20 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
             "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
             "%receiver%" to offlinePlayer.bukkitPlayer.name,
             "%sender%" to senderName)
-
-        val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.removed-message",
-            "%receiver%" to offlinePlayer.bukkitPlayer.name,
-            "%sender%" to senderName)
-
-        Core.broadcastWithPerm(FancyMessage(staffMessage)
+        val permMessage = FancyMessage(staffMessage)
             .hoverEvent(FancyMessage.SHOW_TEXT)
-            .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-removed").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
+            .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-removed").replace("%reason%", reason))
+        Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustHave().broadCastNetwork(permMessage)
+
+
         if (!silent) {
-            Core.broadcastWithoutPerm(FancyMessage(playerMessage)
+            val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.removed-message",
+                "%receiver%" to offlinePlayer.bukkitPlayer.name,
+                "%sender%" to senderName)
+            val noPermMessage = FancyMessage(playerMessage)
                 .hoverEvent(FancyMessage.SHOW_TEXT)
-                .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-removed").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
+                .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-removed").replace("%reason%", reason))
+            Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustNotHave().broadCastNetwork(noPermMessage)
         }
 
         return removed
