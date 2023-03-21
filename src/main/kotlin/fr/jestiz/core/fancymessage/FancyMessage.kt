@@ -4,7 +4,7 @@ import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ComponentBuilder
 import net.md_5.bungee.api.chat.HoverEvent
 
-class FancyMessage(private val msg: String) {
+class FancyMessage(val msg: String) {
 
     companion object {
         val SHOW_TEXT = HoverEvent.Action.SHOW_TEXT
@@ -19,8 +19,8 @@ class FancyMessage(private val msg: String) {
     }
 
     private val component = ComponentBuilder(msg)
-    private lateinit var clickAction: ClickEvent.Action
-    private lateinit var hoverAction: HoverEvent.Action
+    lateinit var clickAction: ClickEvent.Action
+    lateinit var hoverAction: HoverEvent.Action
 
     fun clickEvent(event: ClickEvent.Action): FancyMessage {
         clickAction = event

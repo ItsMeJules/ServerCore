@@ -1,13 +1,18 @@
 package fr.jestiz.core.database.redis.pubsub
 
+import com.google.gson.JsonParser
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisSettings
+import fr.jestiz.core.players.PlayerManager
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPubSub
+import java.lang.RuntimeException
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 
-class RedisSubscriber(private val channel: String) {
+open class RedisSubscriber(private val channel: String) {
     private lateinit var pubSub: JedisPubSub
 
     fun <T> parser(reader: (String) -> T) {

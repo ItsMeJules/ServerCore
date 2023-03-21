@@ -55,6 +55,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
 
     abstract fun errorMessage(): String
+    abstract fun notify(senderName: String, receiverName: String)
 
     /**
      * Executes the punishment, kicks the player if the class
@@ -76,7 +77,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         this.reason = reason
         this.id = ID++
         offlinePlayer.punishments.add(this)
-        RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
+        RedisServer.publish(Constants.REDIS_PUNISHMENT_CHANNEL, this)
         return true
     }
 
@@ -85,7 +86,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         this.remover = remover
         this.removeReason = removeReason
 
-        RedisServer.publish(Constants.PUNISHMENT_CHANNEL, this)
+        RedisServer.publish(Constants.REDIS_PUNISHMENT_CHANNEL, this)
         return true
     }
 
@@ -130,25 +131,10 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     }
 
     companion object {
-        private var ID = 0
+        var ID = 0
 
         init { // No need for async as it's at startup
             RedisServer.runCommand { redis -> redis.get(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID)?.let { ID = it.toInt() } }
-
-            RedisServer.newSubscriber(Constants.PUNISHMENT_CHANNEL).parser { msg ->
-
-            }
-        }
-
-        fun subscribe() {
-            val sub = RedisServer.newSubscriber(Constants.PUNISHMENT_CHANNEL)
-
-            sub.parser { msg ->
-                val jsonObject = JsonParser.parseString(msg).asJsonObject
-
-                if (jsonObject["server-id"]!!.asString != Bukkit.getServerId())
-                    ID++
-            }
         }
 
         fun from(type: PunishmentType, sender: UUID, receiver: UUID): Punishment {

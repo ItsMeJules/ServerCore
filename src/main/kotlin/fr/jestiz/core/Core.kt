@@ -20,7 +20,6 @@ class Core : JavaPlugin() {
         createResources()
         registerListeners()
 
-        Punishment.subscribe()
         CommandHandler.registerParameterProcessors("fr.jestiz.core.api.commands.parameters.processors.defaults")
         CommandHandler.registerCommands("fr.jestiz.core.commands")
 
@@ -63,10 +62,23 @@ class Core : JavaPlugin() {
     companion object {
         lateinit var instance: Core
 
+        private fun publishToServers(fancyMessage: FancyMessage) {
+            RedisServer.publish(Constants.REDIS_BROADCAST_CHANNEL) {
+                val json = JsonObject()
+
+                json.addProperty("fancy-message", fancyMessage.msg)
+                json.addProperty("fancy-click", fancyMessage.clickAction.name)
+                json.addProperty("fancy-hover", fancyMessage.hoverAction.name)
+
+                return@publish json
+            }
+        }
+
         fun broadcastWithPerm(fancyMessage: FancyMessage, permission: String) {
             var built = fancyMessage.build()
             val builder = StringBuilder().append(built.map{ it.toPlainText() })
 
+            publishToServers(fancyMessage)
             PlayerManager.getOnlinePlayers()
                 .filter { it.player.hasPermission(permission) }
                 .forEach { it.player.spigot().sendMessage(*built) }
@@ -78,6 +90,7 @@ class Core : JavaPlugin() {
         fun broadcastWithoutPerm(fancyMessage: FancyMessage, permission: String) {
             var built = fancyMessage.build()
 
+            publishToServers(fancyMessage)
             PlayerManager.getOnlinePlayers()
                 .filterNot { it.player.hasPermission(permission) }
                 .forEach { it.player.spigot().sendMessage(*built) }

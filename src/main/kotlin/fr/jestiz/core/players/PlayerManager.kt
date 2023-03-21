@@ -1,16 +1,15 @@
 package fr.jestiz.core.players
 
-import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import fr.jestiz.core.Constants
 import fr.jestiz.core.database.redis.RedisServer
+import fr.jestiz.core.database.redis.subscribers.UUIDLookupSubscriber
 import net.jodah.expiringmap.ExpirationPolicy
 import net.jodah.expiringmap.ExpiringMap
 import org.bukkit.Bukkit
 import redis.clients.jedis.Jedis
 import java.lang.RuntimeException
 import java.util.*
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 object PlayerManager {
@@ -22,40 +21,6 @@ object PlayerManager {
 
     private val nameToUUID = mutableMapOf<String, UUID>()
     private val uuidToName = mutableMapOf<UUID, String>()
-    private val completableFutures = mutableMapOf<String, CompletableFuture<UUID>>()
-
-    init {
-        RedisServer.newSubscriber(Constants.REDIS_UUID_LOOKUP_RESPONSE_CHANNEL).parser { msg ->
-            val jsonObject = JsonParser.parseString(msg).asJsonObject
-            val name = jsonObject["name"]!!.asString // This can't be null
-
-            completableFutures.remove(name)?.let {
-                jsonObject["uuid"]?.let { jsonUuid ->
-                    if (!jsonUuid.isJsonNull) {
-                        val uuid = UUID.fromString(jsonUuid.asString)
-                        it.complete(uuid)
-                        RedisServer.runCommand { redis -> updateUUIDCache(redis, name, uuid) }
-                    } else
-                        it.complete(null)
-                } ?: it.complete(null)
-            } ?: throw RuntimeException("Completable future $name not found when uuid lookup response was received!")
-        }
-
-        // Gets the latest update of the player record if it's cached in the plugin.
-        RedisServer.newSubscriber(Constants.REDIS_PLAYER_UPDATE_CHANNEL).parser { msg ->
-            val jsonObject = JsonParser.parseString(msg).asJsonObject
-
-            val serverIdString = jsonObject["server-id"]!!.asString // This can't be null
-            if (serverIdString == Bukkit.getServerId())
-                return@parser
-
-            val uuid = UUID.fromString(jsonObject["uuid"]!!.asString) // This can't be null
-            if (!offlinePlayerExists(uuid) && !onlinePlayerExists(uuid))
-                return@parser
-
-            RedisServer.runCommand { getOfflinePlayer(uuid).load(it) }
-        }
-    }
 
     /**
      * Gets a [ServerPlayer] instance
@@ -161,16 +126,7 @@ object PlayerManager {
         uuidString?.let { return UUID.fromString(uuidString) }
 
         // Fetches from database
-        val completableFuture = CompletableFuture<UUID>()
-        completableFutures[lowName] = completableFuture
-
-        RedisServer.publish(Constants.REDIS_UUID_LOOKUP_REQUEST_CHANNEL) {
-            val json = JsonObject()
-            json.addProperty("name", lowName)
-            return@publish json
-        }
-
-        return completableFuture.get()
+        return UUIDLookupSubscriber.askForUUID(lowName).get()
     }
 
     fun updateUUIDCache(redis: Jedis, name: String, uuid: UUID) {

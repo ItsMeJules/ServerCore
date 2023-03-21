@@ -17,28 +17,31 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
             "%id%" to id)
     }
 
-    override fun execute(reason: String): Boolean {
-        val added = super.execute(reason)
-        val offlinePlayer = PlayerManager.getOfflinePlayer(receiver)
-        val senderName = if (Constants.CONSOLE_UUID == sender) "Console" else PlayerManager.getOfflinePlayer(sender).bukkitPlayer.name
-
+    override fun notify(senderName: String, receiverName: String) {
         val staffMessage = Configurations.getConfigMessage("punishment.ban.staff-message.added-message",
             "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
-            "%receiver%" to offlinePlayer.bukkitPlayer.name,
+            "%receiver%" to receiverName,
             "%sender%" to senderName)
-
-        val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.added-message",
-            "%receiver%" to offlinePlayer.bukkitPlayer.name,
-            "%sender%" to senderName)
-
         Core.broadcastWithPerm(FancyMessage(staffMessage)
             .hoverEvent(FancyMessage.SHOW_TEXT)
             .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-added").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
+
         if (!silent) {
+            val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.added-message",
+                "%receiver%" to receiverName,
+                "%sender%" to senderName)
             Core.broadcastWithoutPerm(FancyMessage(playerMessage)
                 .hoverEvent(FancyMessage.SHOW_TEXT)
                 .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-added").replace("%reason%", reason)), Constants.PERMISSION_BAN_COMMAND)
         }
+    }
+
+    override fun execute(reason: String): Boolean {
+        val added = super.execute(reason)
+        val senderName = if (Constants.CONSOLE_UUID == sender) "Console" else PlayerManager.getOfflinePlayer(sender).bukkitPlayer.name
+
+        notify(senderName, PlayerManager.getOfflinePlayer(receiver).bukkitPlayer.name)
+
         return added
     }
 
