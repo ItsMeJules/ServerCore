@@ -72,11 +72,12 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         if (this in offlinePlayer.punishments)
             return false
 
+        this.reason = reason
+        this.id = ID++
+
         if (this is ServerRestrictedPunishment && offlinePlayer is ServerPlayer)
             kick(offlinePlayer, errorMessage())
 
-        this.reason = reason
-        this.id = ID++
         offlinePlayer.punishments.add(this)
         return true
     }
@@ -132,8 +133,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     companion object {
         var ID = 0
 
-        init {
-            println("initializing punishment ids")
+        fun init() {
             RedisServer.runCommand { redis -> redis.get(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID)?.let { ID = it.toInt() } }
         }
 

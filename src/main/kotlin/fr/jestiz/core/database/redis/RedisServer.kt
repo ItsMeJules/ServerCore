@@ -16,14 +16,14 @@ import redis.clients.jedis.JedisPool
 import java.io.FileNotFoundException
 
 object RedisServer {
-    private val pool: JedisPool
-    private val settings: RedisSettings
+    private lateinit var pool: JedisPool
+    private lateinit var settings: RedisSettings
 
-    init {
+    fun connect() {
         val config = Configurations.configs["redis.yml"] ?: throw FileNotFoundException("The file redis.yml is missing.")
         settings = RedisSettings(config.getString("password", ""),
-                                    config.getString("address", "redis"),
-                                    config.getInt("port", 6379))
+            config.getString("address", "redis"),
+            config.getInt("port", 6379))
         pool = JedisPool(settings.address, settings.port)
 
         if (settings.password.isNotEmpty())

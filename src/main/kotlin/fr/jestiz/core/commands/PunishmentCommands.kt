@@ -13,7 +13,7 @@ import org.bukkit.entity.Player
 
 class PunishmentCommands {
 
-    @Command(names = ["ban"], permission = Constants.PERMISSION_BAN_COMMAND)
+    @Command(names = ["ban"], permission = Constants.PERMISSION_BAN_COMMAND, async = true)
     fun banCommand(sender: CommandSender,
                    @Parameter(name = "target") offlineServerPlayer: OfflineServerPlayer,
                    @Parameter(name = "duration", default = "EVER") duration: DurationParser,

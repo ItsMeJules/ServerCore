@@ -24,7 +24,9 @@ class Core : JavaPlugin() {
         CommandHandler.registerParameterProcessors("fr.jestiz.core.api.commands.parameters.processors.defaults")
         CommandHandler.registerCommands("fr.jestiz.core.commands")
 
+        RedisServer.connect()
         RedisServer.publish(Constants.REDIS_SERVER_HEARTBEAT_CHANNEL, ::publishStarted)
+        Punishment.init()
     }
 
     private fun publishStarted(): JsonObject {
