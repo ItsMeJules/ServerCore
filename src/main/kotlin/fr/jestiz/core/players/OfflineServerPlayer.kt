@@ -19,11 +19,14 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
         get() = Bukkit.getOfflinePlayer(uuid)
 
     var loaded = false
-    val punishments = mutableListOf<Punishment>()
+    val punishments = mutableListOf<Punishment>() // no need to save to redis onDisconnect()
     var coins = 0
 
     fun <T : Punishment> getPunishments(kClass: KClass<T>)
         = punishments.filterIsInstance(kClass.java).map { it }
+
+    fun getPunishmentById(id: Int)
+        = punishments.firstOrNull { it.id == id }
 
     open fun load(redis: Jedis): Boolean {
         coins = redis.get("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}").toInt()
@@ -59,7 +62,6 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
     override fun writeToRedis(redis: Jedis): Boolean {
         println("saved to redis")
         redis.set("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}", coins.toString())
-        punishments.forEach { it.writeToRedis(redis) }
 
         // This way each server will be aware when a change happened to the redis db.
         RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) {

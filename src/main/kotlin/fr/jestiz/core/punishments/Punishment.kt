@@ -6,6 +6,7 @@ import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.database.redis.pubsub.RedisPublisher
+import fr.jestiz.core.players.OfflineServerPlayer
 import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.players.ServerPlayer
 import fr.jestiz.core.punishments.types.Ban
@@ -56,12 +57,11 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
 
 
     abstract fun errorMessage(): String
-    abstract fun notify(senderName: String, receiverName: String)
+    abstract fun notify(senderName: String, receiverName: String, removed: Boolean)
 
     /**
      * Executes the punishment, kicks the player if the class
      * implements [ServerRestrictedPunishment].
-     * It writes it to the redis database and publishes a message.
      *
      * @return false if the player already has this punishment.
      * true if not.
@@ -78,7 +78,6 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         this.reason = reason
         this.id = ID++
         offlinePlayer.punishments.add(this)
-        RedisServer.publish(Constants.REDIS_PUNISHMENT_CHANNEL, this)
         return true
     }
 
@@ -86,8 +85,6 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     open fun remove(remover: UUID, removeReason: String): Boolean {
         this.remover = remover
         this.removeReason = removeReason
-
-        RedisServer.publish(Constants.REDIS_PUNISHMENT_CHANNEL, this)
         return true
     }
 
@@ -101,6 +98,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         json.addProperty("issued", issued)
 
         if (!removed) {
+            json.addProperty("type", type.name)
             json.addProperty("sender", sender.toString())
             json.addProperty("reason", reason)
             json.addProperty("expire", expire)
@@ -134,7 +132,8 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
     companion object {
         var ID = 0
 
-        init { // No need for async as it's at startup
+        init {
+            println("initializing punishment ids")
             RedisServer.runCommand { redis -> redis.get(Constants.REDIS_KEY_PUNISHMENTS_LAST_ID)?.let { ID = it.toInt() } }
         }
 

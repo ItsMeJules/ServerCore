@@ -20,7 +20,7 @@ object PlayerUpdateSubscriber : RedisSubscriber(Constants.REDIS_PLAYER_UPDATE_CH
                 return@parser
 
             val uuid = UUID.fromString(jsonObject["uuid"]!!.asString) // This can't be null
-            if (!PlayerManager.offlinePlayerExists(uuid) && !PlayerManager.onlinePlayerExists(uuid))
+            if (!PlayerManager.hasRecordOf(uuid))
                 return@parser
 
             RedisServer.runCommand { PlayerManager.getOfflinePlayer(uuid).load(it) }

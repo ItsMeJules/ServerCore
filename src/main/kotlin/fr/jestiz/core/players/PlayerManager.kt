@@ -61,15 +61,6 @@ object PlayerManager {
     }
 
     /**
-     * Check if the [ServerPlayer] exists
-     * As it's by name, it's using [getUUID] which should be run async.
-     */
-    fun onlinePlayerExists(name: String): Boolean {
-        val uuid = getUUID(name) ?: return false
-        return players.containsKey(uuid)
-    }
-
-    /**
      * Gets an [OfflineServerPlayer] instance
      *
      * @return The [OfflineServerPlayer] corresponding to the uuid or a new instance if not found.
@@ -100,6 +91,17 @@ object PlayerManager {
     */
     fun offlinePlayerExists(uuid: UUID): Boolean {
         return offlinePlayers.containsKey(uuid)
+    }
+
+    /**
+     * Check if this server instance has a record of that UUID.
+     * (making it have whether a [ServerPlayer] or [OfflineServerPlayer])
+     *
+     * @return true if any of [ServerPlayer] / [OfflineServerPlayer] was found.
+     * false otherwise
+     */
+    fun hasRecordOf(uuid: UUID): Boolean {
+        return offlinePlayers.containsKey(uuid) || onlinePlayerExists(uuid)
     }
 
     /**

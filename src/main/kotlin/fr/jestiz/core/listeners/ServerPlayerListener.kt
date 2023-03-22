@@ -20,6 +20,7 @@ class ServerPlayerListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onQuitSave(event: PlayerQuitEvent) {
         // Deletes every trace of the player.
+        // TODO fix: This event happens after the player joined the other server, so redis isn't up to date when logging
         PlayerManager.removeOnlinePlayer(event.player.uniqueId)?.apply {
             Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
                 RedisServer.runCommand { onDisconnect(it) }
