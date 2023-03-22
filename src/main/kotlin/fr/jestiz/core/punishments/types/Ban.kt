@@ -20,48 +20,33 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
     }
 
     override fun notify(senderName: String, receiverName: String, removed: Boolean) {
-        lateinit var permMessage: FancyMessage
-        lateinit var noPermMessage: FancyMessage
-
-        if (removed) {
-            val staffMessage = Configurations.getConfigMessage("punishment.ban.staff-message.removed-message",
-                "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
+        val staffMessageKey = "punishment.ban.staff-message.${if (removed) "removed" else "added"}-message"
+        val silentPrefixKey = "punishment.ban.staff-message.silent-prefix"
+        val playerMessageKey = "punishment.ban.player-message.${if (removed) "removed" else "added"}-message"
+        val hoverKey = "punishment.ban.${if (removed) "hover-removed" else "hover-added"}"
+    
+        val staffMessage = Configurations.getConfigMessage(staffMessageKey,
+            "%silent%" to if (silent) Configurations.getConfigMessage(silentPrefixKey) else "",
+            "%receiver%" to receiverName,
+            "%sender%" to senderName)
+    
+        Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustHave().broadCastNetwork(
+            FancyMessage(staffMessage)
+            .hoverEvent(FancyMessage.SHOW_TEXT)
+            .hover(Configurations.getConfigMessage(hoverKey).replace("%reason%", reason))
+        )
+    
+        if (!silent) {
+            val playerMessage = Configurations.getConfigMessage(playerMessageKey,
                 "%receiver%" to receiverName,
                 "%sender%" to senderName)
-            permMessage = FancyMessage(staffMessage)
-                .hoverEvent(FancyMessage.SHOW_TEXT)
-                .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-removed").replace("%reason%", reason))
-
-            if (!silent) {
-                val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.removed-message",
-                    "%receiver%" to receiverName,
-                    "%sender%" to senderName)
-                noPermMessage = FancyMessage(playerMessage)
+    
+            Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustNotHave().broadCastNetwork(
+                FancyMessage(playerMessage)
                     .hoverEvent(FancyMessage.SHOW_TEXT)
-                    .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-removed").replace("%reason%", reason))
-                Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustNotHave().broadCastNetwork(noPermMessage)
-            }
-        } else {
-            val staffMessage = Configurations.getConfigMessage("punishment.ban.staff-message.added-message",
-                "%silent%" to if (silent) Configurations.getConfigMessage("punishment.ban.staff-message.silent-prefix") else "",
-                "%receiver%" to receiverName,
-                "%sender%" to senderName)
-            permMessage = FancyMessage(staffMessage)
-                .hoverEvent(FancyMessage.SHOW_TEXT)
-                .hover(Configurations.getConfigMessage("punishment.ban.staff-message.hover-added").replace("%reason%", reason))
-            if (!silent) {
-                val playerMessage = Configurations.getConfigMessage("punishment.ban.player-message.added-message",
-                    "%receiver%" to receiverName,
-                    "%sender%" to senderName)
-                noPermMessage = FancyMessage(playerMessage)
-                    .hoverEvent(FancyMessage.SHOW_TEXT)
-                    .hover(Configurations.getConfigMessage("punishment.ban.player-message.hover-added").replace("%reason%", reason))
-            }
+                    .hover(Configurations.getConfigMessage(hoverKey).replace("%reason%", reason))
+            )
         }
-
-        Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustHave().broadCastNetwork(permMessage)
-        if (!silent)
-            Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustNotHave().broadCastNetwork(noPermMessage)
     }
 
 }

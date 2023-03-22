@@ -21,15 +21,19 @@ object UUIDLookupSubscriber : RedisSubscriber(Constants.REDIS_UUID_LOOKUP_RESPON
 
             completableFutures.remove(name)?.let {
                 jsonObject["uuid"]?.let { jsonUuid ->
+
                     if (!jsonUuid.isJsonNull) {
                         val uuid = UUID.fromString(jsonUuid.asString)
-                        it.complete(uuid)
+
                         RedisServer.runCommand { redis -> PlayerManager.updateUUIDCache(redis, name, uuid) }
+                        it.complete(uuid)
                     } else
                         it.complete(null)
+
                 } ?: it.complete(null)
             } ?: throw RuntimeException("Completable future $name not found when uuid lookup response was received!")
         }
+
         super.subscribe()
     }
 
@@ -42,6 +46,7 @@ object UUIDLookupSubscriber : RedisSubscriber(Constants.REDIS_UUID_LOOKUP_RESPON
             json.addProperty("name", name)
             return@publish json
         }
+        
         return completableFuture
     }
 

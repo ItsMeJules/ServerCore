@@ -43,6 +43,7 @@ object PunishmentSubscriber : RedisSubscriber(Constants.REDIS_PUNISHMENT_CHANNEL
             else
                 punishment.remove(sender, reason)
         }
+        
         super.subscribe()
     }
 
