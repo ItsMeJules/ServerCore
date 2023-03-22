@@ -60,7 +60,6 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
 
     // TODO only write data that has changed to redis. (could implement writing queue)
     override fun writeToRedis(redis: Jedis): Boolean {
-        println("saved to redis")
         redis.set("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}", coins.toString())
 
         // This way each server will be aware when a change happened to the redis db.

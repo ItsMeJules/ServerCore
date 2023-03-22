@@ -24,7 +24,7 @@ open class RedisSubscriber(private val channel: String) {
                 try {
                     reader(message)
                 } catch (e: Exception) {
-                    System.err.println("An error occurred when reading from channel: $channel")
+                    Bukkit.getLogger().severe("An error occurred when reading from channel: $channel")
                     e.printStackTrace()
                 }
             }
@@ -36,9 +36,7 @@ open class RedisSubscriber(private val channel: String) {
     }
 
     fun isServerSender(jsonObject: JsonObject): Boolean {
-        jsonObject["server-id"]?.let {
-            println(UUID.fromString(it.asString) == Core.serverID)
-            return UUID.fromString(it.asString) == Core.serverID } ?: return false
+        jsonObject["server-id"]?.let { return UUID.fromString(it.asString) == Core.serverID } ?: return false
     }
 
     fun close() {
