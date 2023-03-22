@@ -13,7 +13,7 @@ import redis.clients.jedis.Jedis
 import java.util.*
 import kotlin.reflect.KClass
 
-open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
+open class OfflineServerPlayer(val uuid: UUID) {
 
     val bukkitPlayer: OfflinePlayer
         get() = Bukkit.getOfflinePlayer(uuid)
@@ -21,6 +21,14 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
     var loaded = false
     val punishments = mutableListOf<Punishment>() // no need to save to redis onDisconnect()
     var coins = 0
+        set (value) {
+            field = value
+            RedisServer.runCommand { it.set("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}", coins.toString()) }
+            RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) { jsonObject ->
+                jsonObject.addProperty("uuid", uuid.toString())
+                jsonObject.addProperty("coins", value)
+            }
+        }
 
     fun <T : Punishment> getPunishments(kClass: KClass<T>)
         = punishments.filterIsInstance(kClass.java).map { it }
@@ -56,21 +64,6 @@ open class OfflineServerPlayer(val uuid: UUID): RedisWriter {
                     callback(this as ServerPlayer)
             }
         }
-    }
-
-    // TODO only write data that has changed to redis. (could implement writing queue)
-    override fun writeToRedis(redis: Jedis): Boolean {
-        redis.set("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}", coins.toString())
-
-        // This way each server will be aware when a change happened to the redis db.
-        RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) {
-            val jsonObject = JsonObject()
-
-            jsonObject.addProperty("uuid", uuid.toString())
-
-            return@publish jsonObject
-        }
-        return true
     }
 
     open fun transferInstance(offlineServerPlayer: OfflineServerPlayer) {

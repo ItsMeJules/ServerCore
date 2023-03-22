@@ -23,6 +23,7 @@ object PlayerUpdateSubscriber : RedisSubscriber(Constants.REDIS_PLAYER_UPDATE_CH
             if (!PlayerManager.hasRecordOf(uuid))
                 return@parser
 
+            // TODO don't get everything, (for now it's ok)
             RedisServer.runCommand { PlayerManager.getOfflinePlayer(uuid).load(it) }
         }
         super.subscribe()

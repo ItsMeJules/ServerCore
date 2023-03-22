@@ -6,7 +6,6 @@ import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.database.redis.RedisWriter
 import fr.jestiz.core.database.redis.pubsub.RedisPublisher
-import fr.jestiz.core.players.OfflineServerPlayer
 import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.players.ServerPlayer
 import fr.jestiz.core.punishments.types.Ban
@@ -89,26 +88,22 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
         return true
     }
 
-    override fun formatChannelMessage(): JsonObject {
-        val json = JsonObject()
-
-        json.addProperty("id", id)
-        json.addProperty("receiver", receiver.toString())
-        json.addProperty("added", !removed)
-        json.addProperty("silent", silent)
-        json.addProperty("issued", issued)
+    override fun formatChannelMessage(jsonObject: JsonObject) {
+        jsonObject.addProperty("id", id)
+        jsonObject.addProperty("receiver", receiver.toString())
+        jsonObject.addProperty("added", !removed)
+        jsonObject.addProperty("silent", silent)
+        jsonObject.addProperty("issued", issued)
 
         if (!removed) {
-            json.addProperty("type", type.name)
-            json.addProperty("sender", sender.toString())
-            json.addProperty("reason", reason)
-            json.addProperty("expire", expire)
+            jsonObject.addProperty("type", type.name)
+            jsonObject.addProperty("sender", sender.toString())
+            jsonObject.addProperty("reason", reason)
+            jsonObject.addProperty("expire", expire)
         } else {
-            json.addProperty("sender", remover.toString())
-            json.addProperty("reason", removeReason)
+            jsonObject.addProperty("sender", remover.toString())
+            jsonObject.addProperty("reason", removeReason)
         }
-
-        return json
     }
 
     override fun writeToRedis(redis: Jedis): Boolean {
@@ -127,6 +122,7 @@ abstract class Punishment(protected val sender: UUID, protected val receiver: UU
                 "expire" to expire.toString())
         )
 
+        RedisServer.publish(Constants.REDIS_PUNISHMENT_CHANNEL, this)
         return true
     }
 

@@ -27,10 +27,7 @@ class PunishmentCommands {
         ban.execute(if (ban.silent) reason.substring(0, reason.length - 2) else reason)
         ban.notify(sender.name, offlineServerPlayer.bukkitPlayer.name, false)
 
-        RedisServer.runCommand { redis ->
-            redis.publish(Constants.REDIS_PUNISHMENT_CHANNEL, ban.formatChannelMessage().toString())
-            ban.writeToRedis(redis)
-        }
+        RedisServer.runCommand { redis -> ban.writeToRedis(redis) }
     }
 
 }

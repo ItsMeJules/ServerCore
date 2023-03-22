@@ -9,8 +9,6 @@ import fr.jestiz.core.database.redis.subscribers.BroadcastSubscriber
 import fr.jestiz.core.database.redis.subscribers.PlayerUpdateSubscriber
 import fr.jestiz.core.database.redis.subscribers.PunishmentSubscriber
 import fr.jestiz.core.database.redis.subscribers.UUIDLookupSubscriber
-import fr.jestiz.core.punishments.Punishment
-import org.bukkit.Bukkit
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import java.io.FileNotFoundException
@@ -42,11 +40,13 @@ object RedisServer {
         publish(channel, publisher::formatChannelMessage)
     }
 
-    fun publish(channel: String, publisher: () -> JsonObject) {
+    fun publish(channel: String, publisher: (JsonObject) -> Unit) {
         runCommand {
-            val jsonObject = publisher()
-
+            val jsonObject = JsonObject()
             jsonObject.addProperty("server-id", Core.serverID.toString())
+
+            publisher(jsonObject)
+
             it.publish(channel, jsonObject.toString())
         }
     }

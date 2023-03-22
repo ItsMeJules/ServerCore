@@ -53,18 +53,10 @@ class ServerPlayer(uuid: UUID) : OfflineServerPlayer(uuid) {
 
         // Saves the data of the ServerPlayer
         redis.srem(Constants.REDIS_KEY_CONNECTED_PLAYERS_LIST, uuid.toString())
-        writeToRedis(redis)
+        PlayerManager.updateUUIDCache(redis, super.bukkitPlayer.name, uuid)
 
         // Initializes a tmp OfflineServerPlayer
         PlayerManager.getOfflinePlayer(uuid).transferInstance(this)
-        return true
-    }
-
-    override fun writeToRedis(redis: Jedis): Boolean {
-        super.writeToRedis(redis)
-
-        PlayerManager.updateUUIDCache(redis, super.bukkitPlayer.name, uuid)
-
         return true
     }
 
