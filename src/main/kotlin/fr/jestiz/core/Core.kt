@@ -29,10 +29,8 @@ class Core : JavaPlugin() {
         Punishment.init()
     }
 
-    private fun publishStarted(): JsonObject {
-        val jsonObject = JsonObject()
+    private fun publishStarted(jsonObject: JsonObject) {
         jsonObject.addProperty("status", "started")
-        return jsonObject
     }
 
     private fun createResources() {
@@ -48,17 +46,14 @@ class Core : JavaPlugin() {
     }
 
     override fun onDisable() {
-        PlayerManager.saveServerPlayers()
         Punishment.saveIDs()
 
         RedisServer.publish(Constants.REDIS_SERVER_HEARTBEAT_CHANNEL, ::publishStop)
         RedisServer.closeConnections()
     }
 
-    private fun publishStop(): JsonObject {
-        val jsonObject = JsonObject()
+    private fun publishStop(jsonObject: JsonObject) {
         jsonObject.addProperty("status", "stopped")
-        return jsonObject
     }
 
 

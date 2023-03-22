@@ -27,9 +27,7 @@ class Broadcaster {
     }
 
     fun broadCastNetwork(fancyMessage: FancyMessage) {
-        RedisServer.publish(Constants.REDIS_BROADCAST_CHANNEL) {
-            val json = JsonObject()
-
+        RedisServer.publish(Constants.REDIS_BROADCAST_CHANNEL) { json ->
             json.addProperty("type", "fancy-message")
             json.addProperty("message", fancyMessage.msg)
 
@@ -42,8 +40,6 @@ class Broadcaster {
             fancyMessage.clickMessage?.let { json.addProperty("click-message", it) }
             fancyMessage.hoverAction?.let { json.addProperty("hover", it.name) }
             fancyMessage.hoverMessage?.let { json.addProperty("hover-message", it) }
-
-            return@publish json
         }
         broadcastServer(fancyMessage)
     }

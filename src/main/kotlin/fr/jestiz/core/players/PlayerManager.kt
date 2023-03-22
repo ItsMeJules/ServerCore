@@ -162,7 +162,4 @@ object PlayerManager {
         return players.values.toList()
     }
 
-    fun saveServerPlayers() {
-        RedisServer.runCommand { redis -> players.values.forEach { it.writeToRedis(redis) } }
-    }
 }

@@ -41,11 +41,7 @@ object UUIDLookupSubscriber : RedisSubscriber(Constants.REDIS_UUID_LOOKUP_RESPON
         val completableFuture = CompletableFuture<UUID>()
         completableFutures[name] = completableFuture
 
-        RedisServer.publish(Constants.REDIS_UUID_LOOKUP_REQUEST_CHANNEL) {
-            val json = JsonObject()
-            json.addProperty("name", name)
-            return@publish json
-        }
+        RedisServer.publish(Constants.REDIS_UUID_LOOKUP_REQUEST_CHANNEL) { it.addProperty("name", name) }
         
         return completableFuture
     }
