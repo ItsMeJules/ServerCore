@@ -41,7 +41,6 @@ open class RedisSubscriber(private val channel: String) {
 
     fun close() {
         pubSub.unsubscribe()
-        subscribers.remove(channel)
     }
 
     open fun subscribe() {

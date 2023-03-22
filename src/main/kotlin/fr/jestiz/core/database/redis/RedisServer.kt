@@ -61,7 +61,8 @@ object RedisServer {
     }
 
     fun closeConnections() {
-        RedisSubscriber.subscribers.values.iterator().forEach { it.close() }
+        RedisSubscriber.subscribers.values.forEach { it.close() }
+        RedisSubscriber.subscribers.clear()
         pool.close()
     }
 }
