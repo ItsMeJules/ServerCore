@@ -5,6 +5,7 @@ import fr.jestiz.core.api.commands.annotations.Command
 import fr.jestiz.core.api.commands.annotations.SubCommand
 import fr.jestiz.core.api.commands.parameters.Parameter
 import fr.jestiz.core.configs.Configurations
+import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.players.OfflineServerPlayer
 import fr.jestiz.core.players.ServerPlayer
 import org.bukkit.command.CommandSender
@@ -26,11 +27,13 @@ class EconomyCommands {
         sender.sendMessage(Configurations.getConfigMessage("command.coins.added-to-player",
             "%coins%" to amount,
             "%receiver%" to offlineServerPlayer.bukkitPlayer.name))
-        offlineServerPlayer.ifOnline {
-            it.player.sendMessage(Configurations.getConfigMessage("command.coins.added-by-player",
+        offlineServerPlayer.ifOnNetwork {
+            offlineServerPlayer.sendNetworkMessage(Configurations.getConfigMessage("command.coins.added-by-player",
                 "%coins%" to amount,
                 "%sender%" to sender.name))
         }
+
+        RedisServer.setPlayerValue(offlineServerPlayer.uuid, Constants.REDIS_KEY_PLAYER_COINS, offlineServerPlayer.coins.toString())
     }
 
     @SubCommand(parentCommand = "coins", name = "remove server", permission = Constants.PERMISSION_COINS_COMMAND, async = true)

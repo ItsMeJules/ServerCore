@@ -4,7 +4,6 @@ import fr.jestiz.core.Broadcaster
 import fr.jestiz.core.Constants
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.fancymessage.FancyMessage
-import fr.jestiz.core.players.PlayerManager
 import fr.jestiz.core.punishments.Punishment
 import fr.jestiz.core.punishments.PunishmentType
 import java.util.*
@@ -22,9 +21,8 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
     override fun notify(senderName: String, receiverName: String, removed: Boolean) {
         val staffMessageKey = "punishment.ban.staff-message.${if (removed) "removed" else "added"}-message"
         val silentPrefixKey = "punishment.ban.staff-message.silent-prefix"
-        val playerMessageKey = "punishment.ban.player-message.${if (removed) "removed" else "added"}-message"
-        val hoverKey = "punishment.ban.${if (removed) "hover-removed" else "hover-added"}"
-    
+        val staffHoverKey = "punishment.ban.staff-message.${if (removed) "hover-removed" else "hover-added"}"
+
         val staffMessage = Configurations.getConfigMessage(staffMessageKey,
             "%silent%" to if (silent) Configurations.getConfigMessage(silentPrefixKey) else "",
             "%receiver%" to receiverName,
@@ -33,10 +31,13 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
         Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustHave().broadCastNetwork(
             FancyMessage(staffMessage)
             .hoverEvent(FancyMessage.SHOW_TEXT)
-            .hover(Configurations.getConfigMessage(hoverKey).replace("%reason%", reason))
+            .hover(Configurations.getConfigMessage(staffHoverKey).replace("%reason%", reason))
         )
     
         if (!silent) {
+            val playerMessageKey = "punishment.ban.player-message.${if (removed) "removed" else "added"}-message"
+            val playerHoverKey = "punishment.ban.player-message.${if (removed) "hover-removed" else "hover-added"}"
+
             val playerMessage = Configurations.getConfigMessage(playerMessageKey,
                 "%receiver%" to receiverName,
                 "%sender%" to senderName)
@@ -44,7 +45,7 @@ class Ban (sender: UUID, receiver: UUID): Punishment(sender, receiver, Punishmen
             Broadcaster().viewPermission(Constants.PERMISSION_BAN_COMMAND).mustNotHave().broadCastNetwork(
                 FancyMessage(playerMessage)
                     .hoverEvent(FancyMessage.SHOW_TEXT)
-                    .hover(Configurations.getConfigMessage(hoverKey).replace("%reason%", reason))
+                    .hover(Configurations.getConfigMessage(playerHoverKey).replace("%reason%", reason))
             )
         }
     }

@@ -1,6 +1,5 @@
 package fr.jestiz.core
 
-import com.google.gson.JsonObject
 import fr.jestiz.core.database.redis.RedisServer
 import fr.jestiz.core.fancymessage.FancyMessage
 import fr.jestiz.core.players.PlayerManager
@@ -45,7 +44,7 @@ class Broadcaster {
     }
 
     fun broadcastServer(fancyMessage: FancyMessage) {
-        var built = fancyMessage.build()
+        val built = fancyMessage.build()
         val builder = StringBuilder().append(built.map{ it.toPlainText() })
 
         if (permission == null)

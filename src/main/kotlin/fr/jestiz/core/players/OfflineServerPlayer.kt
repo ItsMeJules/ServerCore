@@ -21,20 +21,6 @@ open class OfflineServerPlayer(val uuid: UUID) {
     var loaded = false
     val punishments = mutableListOf<Punishment>() // no need to save to redis onDisconnect()
     var coins = 0
-        set (value) {
-            field = value
-            RedisServer.runCommand { it.set("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}", coins.toString()) }
-            RedisServer.publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) { jsonObject ->
-                jsonObject.addProperty("uuid", uuid.toString())
-                jsonObject.addProperty("coins", value)
-            }
-        }
-
-    fun <T : Punishment> getPunishments(kClass: KClass<T>)
-        = punishments.filterIsInstance(kClass.java).map { it }
-
-    fun getPunishmentById(id: Int)
-        = punishments.firstOrNull { it.id == id }
 
     open fun load(redis: Jedis): Boolean {
         coins = redis.get("$uuid:${Constants.REDIS_KEY_PLAYER_COINS}").toInt()
@@ -57,17 +43,35 @@ open class OfflineServerPlayer(val uuid: UUID) {
         return true
     }
 
-    fun ifOnline(callback: (ServerPlayer) -> Unit) {
-        Bukkit.getScheduler().runTaskAsynchronously(Core.instance) {
-            RedisServer.runCommand {
-                if (it.sismember(Constants.REDIS_KEY_CONNECTED_PLAYERS_LIST, uuid.toString()))
-                    callback(this as ServerPlayer)
-            }
-        }
-    }
-
     open fun transferInstance(offlineServerPlayer: OfflineServerPlayer) {
         punishments.addAll(offlineServerPlayer.punishments)
         coins = offlineServerPlayer.coins
     }
+
+    fun <T : Punishment> getPunishments(kClass: KClass<T>) = punishments.filterIsInstance(kClass.java).map { it }
+    fun getPunishmentById(id: Int) = punishments.firstOrNull { it.id == id }
+
+    fun isOnline() = PlayerManager.onlinePlayerExists(uuid)
+
+    fun ifOnNetwork(callback: (OfflineServerPlayer) -> Unit) {
+        val task = {
+            RedisServer.runCommand {
+                if (it.sismember(Constants.REDIS_KEY_CONNECTED_PLAYERS_LIST, uuid.toString()))
+                    callback(this)
+            }
+        }
+
+        if (!Bukkit.isPrimaryThread())
+            task.invoke()
+        else
+            Bukkit.getScheduler().runTaskAsynchronously(Core.instance) { task.invoke() }
+    }
+
+    fun sendNetworkMessage(msg: String) {
+        RedisServer.publish(Constants.REDIS_PLAYER_MESSAGE_CHANNEL) { jsonObject ->
+            jsonObject.addProperty("uuid", uuid.toString())
+            jsonObject.addProperty("message", msg)
+        }
+    }
+
 }

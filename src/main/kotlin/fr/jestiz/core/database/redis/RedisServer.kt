@@ -1,17 +1,17 @@
 package fr.jestiz.core.database.redis
 
 import com.google.gson.JsonObject
+import fr.jestiz.core.Constants
 import fr.jestiz.core.Core
 import fr.jestiz.core.configs.Configurations
 import fr.jestiz.core.database.redis.pubsub.RedisPublisher
 import fr.jestiz.core.database.redis.pubsub.RedisSubscriber
-import fr.jestiz.core.database.redis.subscribers.BroadcastSubscriber
-import fr.jestiz.core.database.redis.subscribers.PlayerUpdateSubscriber
-import fr.jestiz.core.database.redis.subscribers.PunishmentSubscriber
-import fr.jestiz.core.database.redis.subscribers.UUIDLookupSubscriber
+import fr.jestiz.core.database.redis.subscribers.*
+import fr.jestiz.core.players.OfflineServerPlayer
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import java.io.FileNotFoundException
+import java.util.UUID
 
 object RedisServer {
     private lateinit var pool: JedisPool
@@ -31,6 +31,7 @@ object RedisServer {
         PlayerUpdateSubscriber.subscribe()
         PunishmentSubscriber.subscribe()
         UUIDLookupSubscriber.subscribe()
+        PlayerMessageSubscriber.subscribe()
     }
 
     val isActive: Boolean
@@ -55,9 +56,20 @@ object RedisServer {
         return RedisSubscriber(channel)
     }
 
-    fun runCommand(run: (Jedis) -> Unit): Boolean {
+    fun runCommand(run: (Jedis) -> Unit) {
         pool.resource.use { jedis -> run(jedis) }
-        return true
+    }
+
+    fun setPlayerValue(uuid: UUID, field: String, value: String, publish: Boolean = true) {
+        runCommand { it.set("$uuid:$field", value) }
+
+        if (!publish)
+            return
+
+        publish(Constants.REDIS_PLAYER_UPDATE_CHANNEL) { jsonObject ->
+            jsonObject.addProperty("uuid", uuid.toString())
+            jsonObject.addProperty(field, value)
+        }
     }
 
     fun closeConnections() {

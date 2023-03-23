@@ -26,6 +26,7 @@ object Constants {
     const val REDIS_SERVER_HEARTBEAT_CHANNEL = "server-heartbeat"
     const val REDIS_PLAYER_UPDATE_CHANNEL = "player-update"
     const val REDIS_BROADCAST_CHANNEL = "broadcast"
+    const val REDIS_PLAYER_MESSAGE_CHANNEL = "player-message"
 
     const val REDIS_KEY_NAME_TO_UUID = "name-to-uuid"
     const val REDIS_KEY_UUID_TO_NAME = "uuid-to-name"

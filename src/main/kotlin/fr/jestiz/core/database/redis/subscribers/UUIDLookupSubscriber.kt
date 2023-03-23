@@ -17,6 +17,10 @@ object UUIDLookupSubscriber : RedisSubscriber(Constants.REDIS_UUID_LOOKUP_RESPON
     override fun subscribe() {
         parser { msg ->
             val jsonObject = JsonParser.parseString(msg).asJsonObject
+
+            if (!isServerSender(jsonObject))
+                return@parser
+
             val name = jsonObject["name"]!!.asString // This can't be null
 
             completableFutures.remove(name)?.let {
